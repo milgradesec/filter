@@ -1,0 +1,11 @@
+
+###################################
+# Lista negra y reglas de bloqueo #
+###################################
+# Solo se aplican en mi red
+
+# Facebook
+*.facebook.net
+*.facebook.com
+*.fbcdn.net
+*.tfbnw.net

@@ -1,0 +1,118 @@
+
+###################################
+# Lista negra y reglas de bloqueo #
+###################################
+
+# Expresiones regulares
+^beacons?[0-9]*[-.]
+
+# Bloqueado todo lo que empieza por:
+ad.*
+ads.*
+adservice.*
+adserver.*
+adbroker.*
+adtrack.*
+advertising.*
+analytics.*
+banner.*
+banners.*
+telemetry.*
+track.*
+tracking.*
+log.*
+
+# Bloqueado todo lo que acaba por:
+*.outbrain.com
+*.taboola.com
+*.smartadserver.com
+*.amazon-adsystem.com
+*.adsafeprotected.com
+*.ads-twitter.com
+*.vilynx.com
+*.scorecardresearch.com
+*.mellowads.com
+*.addealsnetwork.com
+*.adduplex.com
+*.advertising.com
+*.trafficjunky.net
+*.trafficjunky.com
+*.traffichaus.com
+*.quantcast.com
+*.quantserve.com
+*.optimizely.com
+*.gigya.com
+*.pflexads.com
+*.mojiva.com
+*.appads.com
+*.smaato.net
+*.media.net
+*.infolinks.com
+*.revenuehits.com
+*.adblade.com
+*.undertone.com
+*.bidvertiser.com
+*.vibrantmedia.com
+*.clicksor.com
+*.epom.com
+*.medianexusnetwork.com
+*.propellerads.com
+*.pulsepoint.com
+*.conversantmedia.com
+*.adcash.com
+*.chitika.com
+*.mgid.com
+*.fwmrm.net
+*.omaze.com
+*.aaxads.com
+*.bounceexchange.com
+*.dm-event.net
+*.cxense.com
+*.adnxs.com
+*.chartbeat.com
+*.dataxpand.com
+*.onesignal.com
+*.addthis.com
+*.zeotap.com
+*.tribalfusion.com
+*.insurads.com
+*.apxadtracking.net
+*.mmstat.com
+*.media-match.com
+*.advertising.com
+*.runative-syndicate.com
+*.whatpush.com
+*.whatpush.co
+*.mobileapptracking.com
+
+# Google
+id.google.*
+*.googleadservices.com
+*.google-analytics.com
+*.googlesyndication.com
+*.doubleclick.net
+*.doubleclick.com
+*.doubleclickbygoogle.com
+*.googletagservices.com
+*.googletagmanager.com
+imasdk.googleapis.com
+
+# Facebook
+connect.facebook.net
+
+# Local Network
+wpad.*
+*.lan
+*.home
+*.Home
+*.workgroup
+
+# Otros
+# searchads.msn.net
+# www.megdexchange.com
+# xch.smrtgs.com
+# allmygreatestlife.com
+# mygoodlives.com
+# tracker.ilibr.org
+# www.atresmediapublicidad.com
+# events.gfe.nvidia.com
