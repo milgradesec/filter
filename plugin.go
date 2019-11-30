@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -31,19 +32,20 @@ func (p *Plugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	defer p.RUnlock()
 
 	if p.Query(qname, local) {
+		server := metrics.WithServer(ctx)
+		blockedCount.WithLabelValues(server).Inc()
+
 		resp := new(dns.Msg)
 		resp.SetRcode(r, dns.RcodeNameError)
 		err := w.WriteMsg(resp)
 		if err != nil {
 			return dns.RcodeServerFailure, err
 		}
-
-		server := metrics.WithServer(ctx)
-		blockedCount.WithLabelValues(server).Inc()
-
 		return dns.RcodeNameError, nil
 	}
-	return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
+
+	rw := &ResponseWriter{ResponseWriter: w, Plugin: p, Request: r}
+	return plugin.NextOrFailure(p.Name(), p.Next, ctx, rw, r)
 }
 
 func (p *Plugin) Query(domain string, local bool) bool {
@@ -59,16 +61,40 @@ func (p *Plugin) Query(domain string, local bool) bool {
 	return false
 }
 
-func (p *Plugin) Name() string { return "filter" }
+func (p *Plugin) Name() string {
+	return "filter"
+}
+
+type ResponseWriter struct {
+	dns.ResponseWriter
+	*Plugin
+
+	Request *dns.Msg
+}
+
+func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
+	for _, r := range m.Answer {
+		hdr := r.Header()
+		if hdr.Class != dns.ClassINET || hdr.Rrtype != dns.TypeCNAME {
+			continue
+		}
+		cname := r.(*dns.CNAME).Target
+		if w.Plugin.Query(cname, false) {
+			// LOG
+			fmt.Println("CNAME bloqueado")
+
+			resp := new(dns.Msg)
+			resp.SetRcode(w.Request, dns.RcodeNameError)
+			return w.WriteMsg(resp)
+		}
+	}
+	return w.ResponseWriter.WriteMsg(m)
+}
 
 /*func replyBlockedResponse(w dns.ResponseWriter, r *dns.Msg) error {
 	m := new(dns.Msg)
 	m.SetReply(r)
 	hdr := dns.RR_Header{Name: r.Question[0].Name, Ttl: 60, Rrtype: dns.TypeHINFO}
 	m.Answer = []dns.RR{&dns.HINFO{Hdr: hdr, Cpu: "BLOCKED"}}
-	err := w.WriteMsg(m)
-	if err != nil {
-		return err
-	}
-	return nil
+	return w.WriteMsg(m)
 }*/
