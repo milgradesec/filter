@@ -79,6 +79,8 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 			continue
 		}
 		cname := r.(*dns.CNAME).Target
+		fmt.Println("CNAME inspeccionado")
+
 		if w.Plugin.Query(cname, false) {
 			// LOG
 			fmt.Println("CNAME bloqueado")
