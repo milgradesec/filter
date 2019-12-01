@@ -1,16 +1,18 @@
 package filter
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/metrics"
+	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
 	"golang.org/x/net/context"
 )
+
+var log = clog.NewWithPlugin("filter")
 
 type Plugin struct {
 	Next plugin.Handler
@@ -35,6 +37,7 @@ func (p *Plugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		server := metrics.WithServer(ctx)
 		blockedCount.WithLabelValues(server).Inc()
 
+		log.Infof("Blocked %s", state.Name())
 		resp := new(dns.Msg)
 		resp.SetRcode(r, dns.RcodeNameError)
 		err := w.WriteMsg(resp)
@@ -79,11 +82,11 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 			continue
 		}
 		cname := r.(*dns.CNAME).Target
-		fmt.Println("CNAME inspeccionado")
+		log.Infof("Visto CNAME")
 
 		if w.Plugin.Query(cname, false) {
 			// LOG
-			fmt.Println("CNAME bloqueado")
+			log.Infof("Blocked CNAME")
 
 			resp := new(dns.Msg)
 			resp.SetRcode(w.Request, dns.RcodeNameError)
