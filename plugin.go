@@ -23,8 +23,13 @@ type Plugin struct {
 
 func (p *Plugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
-	qname := strings.TrimSuffix(r.Question[0].Name, ".")
 
+	qname := strings.ToLower(r.Question[0].Name)
+	if qname == "." {
+		return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
+	}
+
+	qname = strings.TrimSuffix(qname, ".")
 	var local bool
 	if strings.HasPrefix(state.IP(), "192.168.") {
 		local = true
@@ -47,8 +52,8 @@ func (p *Plugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		return dns.RcodeNameError, nil
 	}
 
-	rw := &ResponseWriter{ResponseWriter: w, Plugin: p, Request: r}
-	return plugin.NextOrFailure(p.Name(), p.Next, ctx, rw, r)
+	//rw := &ResponseWriter{ResponseWriter: w, Plugin: p, Request: r}
+	return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
 }
 
 func (p *Plugin) Query(domain string, local bool) bool {
@@ -85,7 +90,6 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 		log.Infof("Visto CNAME")
 
 		if w.Plugin.Query(cname, false) {
-			// LOG
 			log.Infof("Blocked CNAME")
 
 			resp := new(dns.Msg)
