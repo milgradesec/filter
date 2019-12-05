@@ -43,13 +43,21 @@ func (p *Plugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		blockedCount.WithLabelValues(server).Inc()
 
 		log.Infof("Blocked %s", state.Name())
-		resp := new(dns.Msg)
+
+		/*resp := new(dns.Msg)
 		resp.SetRcode(r, dns.RcodeNameError)
 		err := w.WriteMsg(resp)
 		if err != nil {
 			return dns.RcodeServerFailure, err
 		}
+		return dns.RcodeNameError, nil*/
+
+		err := replyBlockedResponse(w, r)
+		if err != nil {
+			return dns.RcodeServerFailure, err
+		}
 		return dns.RcodeNameError, nil
+
 	}
 
 	//rw := &ResponseWriter{ResponseWriter: w, Plugin: p, Request: r}
@@ -100,10 +108,10 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 	return w.ResponseWriter.WriteMsg(m)
 }
 
-/*func replyBlockedResponse(w dns.ResponseWriter, r *dns.Msg) error {
+func replyBlockedResponse(w dns.ResponseWriter, r *dns.Msg) error {
 	m := new(dns.Msg)
 	m.SetReply(r)
 	hdr := dns.RR_Header{Name: r.Question[0].Name, Ttl: 60, Rrtype: dns.TypeHINFO}
 	m.Answer = []dns.RR{&dns.HINFO{Hdr: hdr, Cpu: "BLOCKED"}}
 	return w.WriteMsg(m)
-}*/
+}
