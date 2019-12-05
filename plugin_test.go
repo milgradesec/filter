@@ -107,7 +107,7 @@ func Test_ServeDNS(t *testing.T) {
 
 	rec := dnstest.NewRecorder(&test.ResponseWriter{})
 	req := new(dns.Msg)
-	req.SetQuestion("example.org", dns.TypeA)
+	req.SetQuestion("ads.example.org", dns.TypeA)
 
 	_, err = f.ServeDNS(context.TODO(), rec, req)
 	if err != nil {

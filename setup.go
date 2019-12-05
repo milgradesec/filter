@@ -11,7 +11,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-func init() { plugin.Register("filter", setup) }
+func init() {
+	plugin.Register("filter", setup)
+}
 
 func setup(c *caddy.Controller) error {
 	p, err := parseFilter(c)

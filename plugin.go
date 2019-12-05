@@ -44,9 +44,12 @@ func (p *Plugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 
 		log.Infof("Blocked %s", state.Name())
 
-		resp := new(dns.Msg)
-		resp.SetRcode(r, dns.RcodeNameError)
-		err := w.WriteMsg(resp)
+		/*m := new(dns.Msg)
+		m.SetReply(r)
+		m.SetRcode(r, dns.RcodeNameError)
+		m.Answer = make([]dns.RR, 0)
+		err := w.WriteMsg(m)*/
+		err := replyBlockedResponse(w, r)
 		if err != nil {
 			return dns.RcodeServerFailure, err
 		}
