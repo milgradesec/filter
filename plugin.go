@@ -1,7 +1,6 @@
 package filter
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 
@@ -45,14 +44,11 @@ func (p *Plugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 
 		log.Infof("Blocked %s", state.Name())
 
-		answers := nxdomain(state.Name())
-
-		m := new(dns.Msg)
+		/*m := new(dns.Msg)
 		m.SetReply(r)
 		m.SetRcode(r, dns.RcodeNameError)
-		m.Answer = answers
-
-		err := w.WriteMsg(m)
+		err := w.WriteMsg(m)*/
+		err := replyBlockedResponse(w, r)
 		if err != nil {
 			return dns.RcodeServerFailure, err
 		}
@@ -110,13 +106,9 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 func replyBlockedResponse(w dns.ResponseWriter, r *dns.Msg) error {
 	m := new(dns.Msg)
 	m.SetReply(r)
-	//hdr := dns.RR_Header{Name: r.Question[0].Name, Ttl: 60, Rrtype: dns.TypeHINFO}
+	m.SetRcode(r, dns.RcodeNameError)
+	hdr := dns.RR_Header{Name: r.Question[0].Name, Ttl: 60, Rrtype: dns.TypeSOA}
 	//m.Answer = []dns.RR{&dns.HINFO{Hdr: hdr, Cpu: "BLOCKED"}}
+	m.Answer = []dns.RR{&dns.SOA{Hdr: hdr, Minttl: 60}}
 	return w.WriteMsg(m)
-}
-
-func nxdomain(zone string) []dns.RR {
-	s := fmt.Sprintf("%s 60 IN SOA ns1.%s postmaster.%s 1524370381 14400 3600 604800 60", zone, zone, zone)
-	soa, _ := dns.NewRR(s)
-	return []dns.RR{soa}
 }
