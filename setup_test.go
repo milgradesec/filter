@@ -9,7 +9,7 @@ import (
 func TestSetup(t *testing.T) {
 	c := caddy.NewTestController("dns", `filter`)
 	if err := setup(c); err == nil {
-		t.Errorf("Expected errors, but got: %v", err)
+		t.Fatalf("Expected errors, but got: %v", err)
 	}
 
 	c = caddy.NewTestController("dns", `filter {
@@ -17,6 +17,6 @@ func TestSetup(t *testing.T) {
 		block https://dl.paesacybersecurity.eu/lists/blacklist.txt
 	}`)
 	if err := setup(c); err != nil {
-		t.Errorf("Expected no errors, but got: %v", err)
+		t.Fatalf("Expected no errors, but got: %v", err)
 	}
 }

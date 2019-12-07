@@ -21,7 +21,7 @@ func Test_ServeDNS(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f.Next = test.ErrorHandler()
+	f.Next = test.NextHandler(dns.RcodeSuccess, nil)
 
 	if err = f.Load(); err != nil {
 		t.Fatal(err)
@@ -29,10 +29,13 @@ func Test_ServeDNS(t *testing.T) {
 
 	rec := dnstest.NewRecorder(&test.ResponseWriter{})
 	req := new(dns.Msg)
-	req.SetQuestion("ads.example.org", dns.TypeA)
+	req.SetQuestion("example.org", dns.TypeA)
 
-	_, err = f.ServeDNS(context.TODO(), rec, req)
+	rcode, err := f.ServeDNS(context.TODO(), rec, req)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if rcode != dns.RcodeSuccess {
+		t.Fatalf("Expected NOERROR but got %v", dns.RcodeToString[rcode])
 	}
 }
