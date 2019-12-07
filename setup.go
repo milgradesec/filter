@@ -1,14 +1,9 @@
 package filter
 
 import (
-	"errors"
-	"os"
-
 	"github.com/caddyserver/caddy"
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
-	"github.com/coredns/coredns/plugin/metrics"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func init() {
@@ -16,77 +11,60 @@ func init() {
 }
 
 func setup(c *caddy.Controller) error {
-	p, err := parseFilter(c)
+	p, err := parseConfig(c)
 	if err != nil {
 		return plugin.Error("filter", err)
 	}
+
+	c.OnStartup(func() error {
+		//once.Do(func() { metrics.MustRegister(c, blockCount) })
+		return p.Load()
+	})
+
+	c.OnShutdown(func() error {
+		//close(block.stop)
+		return nil
+	})
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		p.Next = next
 		return p
 	})
 
-	c.OnStartup(func() error {
-		m := dnsserver.GetConfig(c).Handler("prometheus")
-		if x, ok := m.(*metrics.Metrics); ok {
-			x.MustRegister(blockedCount)
-		}
-		return nil
-	})
 	return nil
 }
 
-func parseFilter(c *caddy.Controller) (*Plugin, error) {
-	f := &Plugin{}
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
+func parseConfig(c *caddy.Controller) (*Filter, error) {
+	filter := New()
 
 	for c.Next() {
 		for c.NextBlock() {
 			switch c.Val() {
-			case "list":
+			case "allow":
 				args := c.RemainingArgs()
-				if len(args) != 2 {
-					return nil, c.ArgErr()
+				if len(args) != 1 {
+					return nil, plugin.Error("filter", c.ArgErr())
 				}
+				filter.Lists[args[0]] = false
 
-				list, err := NewFilter(cwd + args[0])
-				if err != nil {
-					return nil, err
+			case "block":
+				args := c.RemainingArgs()
+				if len(args) != 1 {
+					return nil, plugin.Error("filter", c.ArgErr())
 				}
+				filter.Lists[args[0]] = true
 
-				switch args[1] {
-				case "white":
-					list.Type = white
-				case "black":
-					list.Type = black
-				case "private":
-					list.Type = private
-				default:
-					return nil, c.ArgErr()
-				}
-
-				f.filters = append(f.filters, list)
 			default:
-				return nil, c.ArgErr()
+				return nil, plugin.Error("filter", c.ArgErr())
 			}
 		}
 	}
-
-	if len(f.filters) == 0 {
-		return nil, errors.New("invalid list configuration")
+	if c.NextArg() {
+		return nil, plugin.Error("filter", c.ArgErr())
 	}
-	return f, nil
-}
 
-var (
-	blockedCount = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: plugin.Namespace,
-		Subsystem: "filter",
-		Name:      "blocked_total",
-		Help:      "The count of blocked requests.",
-	}, []string{"server"})
-)
+	if len(filter.Lists) == 0 {
+		return nil, plugin.Error("filter", c.ArgErr())
+	}
+	return filter, nil
+}
