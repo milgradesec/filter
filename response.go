@@ -14,7 +14,7 @@ var defaultSOA = &dns.SOA{
 
 func genSOA(r *dns.Msg) []dns.RR {
 	zone := r.Question[0].Name
-	hdr := dns.RR_Header{Name: zone, Rrtype: dns.TypeSOA, Ttl: 120, Class: dns.ClassINET}
+	hdr := dns.RR_Header{Name: zone, Rrtype: dns.TypeSOA, Ttl: 600, Class: dns.ClassINET}
 
 	Mbox := "hostmaster."
 	if zone[0] != '.' {
@@ -24,7 +24,7 @@ func genSOA(r *dns.Msg) []dns.RR {
 	soa := *defaultSOA
 	soa.Hdr = hdr
 	soa.Mbox = Mbox
-	soa.Ns = "fake-for-negative-caching.paesacybersecurity.eu."
+	soa.Ns = "fake-for-negative-caching."
 	soa.Serial = 100500 // faster than uint32(time.Now().Unix())
 	return []dns.RR{&soa}
 }
