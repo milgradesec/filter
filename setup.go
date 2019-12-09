@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"strconv"
+
 	"github.com/caddyserver/caddy"
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
@@ -35,36 +37,48 @@ func setup(c *caddy.Controller) error {
 }
 
 func parseConfig(c *caddy.Controller) (*Filter, error) {
-	filter := New()
-
+	f := New()
 	for c.Next() {
 		for c.NextBlock() {
-			switch c.Val() {
-			case "allow":
-				args := c.RemainingArgs()
-				if len(args) != 1 {
-					return nil, plugin.Error("filter", c.ArgErr())
-				}
-				filter.Lists[args[0]] = false
-
-			case "block":
-				args := c.RemainingArgs()
-				if len(args) != 1 {
-					return nil, plugin.Error("filter", c.ArgErr())
-				}
-				filter.Lists[args[0]] = true
-
-			default:
-				return nil, plugin.Error("filter", c.ArgErr())
+			if err := parseBlock(c, f); err != nil {
+				return nil, err
 			}
 		}
 	}
-	if c.NextArg() {
-		return nil, plugin.Error("filter", c.ArgErr())
-	}
 
-	if len(filter.Lists) == 0 {
-		return nil, plugin.Error("filter", c.ArgErr())
+	if len(f.lists) == 0 {
+		return nil, c.ArgErr()
 	}
-	return filter, nil
+	return f, nil
+}
+
+func parseBlock(c *caddy.Controller, f *Filter) error {
+	switch c.Val() {
+	case "allow":
+		if !c.NextArg() {
+			return c.ArgErr()
+		}
+		f.lists[c.Val()] = false
+
+	case "block":
+		if !c.NextArg() {
+			return c.ArgErr()
+		}
+		f.lists[c.Val()] = true
+
+	case "ttl":
+		if !c.NextArg() {
+			return c.ArgErr()
+		}
+
+		ttl, err := strconv.Atoi(c.Val())
+		if err != nil {
+			return err
+		}
+		f.ttl = uint32(ttl)
+
+	default:
+		return c.Errf("unknown setting '%s' ", c.Val())
+	}
+	return nil
 }

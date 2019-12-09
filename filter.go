@@ -15,13 +15,15 @@ var log = clog.NewWithPlugin("filter")
 type Filter struct {
 	Next plugin.Handler
 
-	Lists map[string]bool
+	lists map[string]bool
 	mu    sync.RWMutex
+
+	ttl uint32
 }
 
 func New() *Filter {
 	return &Filter{
-		Lists: make(map[string]bool),
+		lists: make(map[string]bool),
 	}
 }
 

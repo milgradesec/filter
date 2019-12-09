@@ -10,7 +10,7 @@ func (f *Filter) Load() error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	for list := range f.Lists {
+	for list := range f.lists {
 		log.Debugf("Loading list %v", list)
 
 		if strings.HasPrefix(list, "http") {

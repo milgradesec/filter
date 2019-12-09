@@ -7,42 +7,38 @@ import (
 )
 
 func TestSetup(t *testing.T) {
-	c := caddy.NewTestController("dns", `filter`)
-	if err := setup(c); err == nil {
-		t.Fatalf("Expected errors, but got: %v", err)
+	tests := []struct {
+		input     string
+		shouldErr bool
+	}{
+		{`filter`, true},
+		{`filter more`, true},
+		{`filter {
+			more
+			}`, true},
+		{`filter {
+			block url more
+			}`, true},
+		{`filter {
+			allow path more
+			}`, true},
+		{`filter {
+			allow https://dl.paesacybersecurity.eu/lists/whitelist.txt
+			block https://dl.paesacybersecurity.eu/lists/blacklist.txt
+		}`, false},
 	}
 
-	c = caddy.NewTestController("dns", `filter more`)
-	if err := setup(c); err == nil {
-		t.Fatalf("Expected errors, but got: %v", err)
-	}
+	for i, test := range tests {
+		c := caddy.NewTestController("dns", test.input)
+		err := setup(c)
 
-	c = caddy.NewTestController("dns", `filter {
-		more
-		}`)
-	if err := setup(c); err == nil {
-		t.Fatalf("Expected errors, but got: %v", err)
-	}
+		if test.shouldErr && err == nil {
+			t.Errorf("Test %d: expected error but found %s for input %s", i, err, test.input)
+		}
 
-	c = caddy.NewTestController("dns", `filter {
-		block url more
-		}`)
-	if err := setup(c); err == nil {
-		t.Fatalf("Expected errors, but got: %v", err)
-	}
+		if !test.shouldErr && err != nil {
+			t.Errorf("Test %d: expected no error but found one for input %s, got: %v", i, test.input, err)
+		}
 
-	c = caddy.NewTestController("dns", `filter {
-		allow path more
-		}`)
-	if err := setup(c); err == nil {
-		t.Fatalf("Expected errors, but got: %v", err)
-	}
-
-	c = caddy.NewTestController("dns", `filter {
-		allow https://dl.paesacybersecurity.eu/lists/whitelist.txt
-		block https://dl.paesacybersecurity.eu/lists/blacklist.txt
-	}`)
-	if err := setup(c); err != nil {
-		t.Fatalf("Expected no errors, but got: %v", err)
 	}
 }
