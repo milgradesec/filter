@@ -6,13 +6,12 @@ import (
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/metrics"
-	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
 	"golang.org/x/net/context"
 )
 
-var log = clog.NewWithPlugin("filter")
+//var log = clog.NewWithPlugin("filter")
 
 type Plugin struct {
 	Next plugin.Handler
@@ -41,14 +40,7 @@ func (p *Plugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	if p.Query(qname, local) {
 		server := metrics.WithServer(ctx)
 		blockedCount.WithLabelValues(server).Inc()
-
-		m := new(dns.Msg)
-		m.SetRcode(r, dns.RcodeNameError)
-		err := w.WriteMsg(m)
-		if err != nil {
-			return dns.RcodeServerFailure, err
-		}
-		return dns.RcodeNameError, nil
+		return writeNXdomain(w, r)
 	}
 
 	//rw := &ResponseWriter{ResponseWriter: w, Plugin: p, Request: r}
@@ -86,11 +78,8 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 			continue
 		}
 		cname := r.(*dns.CNAME).Target
-		log.Infof("Visto CNAME")
 
 		if w.Plugin.Query(cname, false) {
-			log.Infof("Blocked CNAME")
-
 			resp := new(dns.Msg)
 			resp.SetRcode(w.Request, dns.RcodeNameError)
 			return w.WriteMsg(resp)
@@ -99,12 +88,42 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 	return w.ResponseWriter.WriteMsg(m)
 }
 
-/*func replyBlockedResponse(w dns.ResponseWriter, r *dns.Msg) error {
+func writeNXdomain(w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	m := new(dns.Msg)
-	m.SetReply(r)
 	m.SetRcode(r, dns.RcodeNameError)
-	hdr := dns.RR_Header{Name: r.Question[0].Name, Ttl: 60, Rrtype: dns.TypeSOA}
-	//m.Answer = []dns.RR{&dns.HINFO{Hdr: hdr, Cpu: "BLOCKED"}}
-	m.Answer = []dns.RR{&dns.SOA{Hdr: hdr, Minttl: 60}}
-	return w.WriteMsg(m)
-}*/
+	m.Authoritative, m.RecursionAvailable, m.Compress = true, true, true
+	m.Ns = genSOA(r)
+
+	err := w.WriteMsg(m)
+	if err != nil {
+		return dns.RcodeServerFailure, err
+	}
+	return dns.RcodeNameError, nil
+}
+
+var defaultSOA = &dns.SOA{
+	// values copied from verisign's nonexistent .com domain
+	// their exact values are not important in our use case because
+	// they are used for domain transfers between primary/secondary DNS servers
+	Refresh: 1800,
+	Retry:   900,
+	Expire:  604800,
+	Minttl:  86400,
+}
+
+func genSOA(r *dns.Msg) []dns.RR {
+	zone := r.Question[0].Name
+	hdr := dns.RR_Header{Name: zone, Rrtype: dns.TypeSOA, Ttl: 120, Class: dns.ClassINET}
+
+	Mbox := "hostmaster."
+	if zone[0] != '.' {
+		Mbox += zone
+	}
+
+	soa := *defaultSOA
+	soa.Hdr = hdr
+	soa.Mbox = Mbox
+	soa.Ns = "fake-for-negative-caching.paesacybersecurity.eu."
+	soa.Serial = 100500 // faster than uint32(time.Now().Unix())
+	return []dns.RR{&soa}
+}
