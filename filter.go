@@ -2,6 +2,7 @@ package filter
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/coredns/coredns/plugin"
@@ -16,6 +17,8 @@ type Filter struct {
 	Next plugin.Handler
 
 	lists map[string]bool
+	allow *list
+	block *list
 	mu    sync.RWMutex
 
 	ttl uint32
@@ -28,6 +31,10 @@ func New() *Filter {
 }
 
 func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+	if len(r.Question) != 1 {
+		return dns.RcodeFormatError, errors.New("DNS request with multiple questions")
+	}
+
 	state := request.Request{W: w, Req: r}
 
 	f.mu.RLock()
