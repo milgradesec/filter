@@ -18,9 +18,12 @@ func TestSetup(t *testing.T) {
 			}`, true},
 		{`filter {
 			block url more
+			allow path more
 			}`, true},
 		{`filter {
-			allow path more
+			block 
+			allow
+			ttl
 			}`, true},
 		{`filter {
 			allow https://dl.paesacybersecurity.eu/lists/whitelist.txt
