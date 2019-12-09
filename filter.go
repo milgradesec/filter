@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/coredns/coredns/plugin"
+	"github.com/coredns/coredns/plugin/metrics"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
@@ -16,10 +17,10 @@ var log = clog.NewWithPlugin("filter")
 type Filter struct {
 	Next plugin.Handler
 
-	lists map[string]bool
-	allow *list
-	block *list
-	mu    sync.RWMutex
+	lists     map[string]bool
+	mu        sync.RWMutex
+	whitelist *list
+	blacklist *list
 
 	ttl uint32
 }
@@ -36,12 +37,34 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	}
 
 	state := request.Request{W: w, Req: r}
-
-	f.mu.RLock()
-	defer f.mu.RUnlock()
+	if f.Match(state.Name()) {
+		BlockedCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
+		return writeNXdomain(w, r)
+	}
 
 	rw := &ResponseWriter{ResponseWriter: w, Filter: f, state: state}
 	return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
+}
+
+func (f *Filter) Match(str string) bool {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	if f.whitelist.Match(str) {
+		return false
+	}
+	if f.blacklist.Match(str) {
+		return true
+	}
+	return false
+}
+
+func (f *Filter) OnStartup() error {
+	return f.Load()
+}
+
+func (f *Filter) OnShutdown() error {
+	return nil
 }
 
 func (f *Filter) Name() string {

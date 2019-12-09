@@ -6,6 +6,7 @@ import (
 	"github.com/caddyserver/caddy"
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
+	"github.com/coredns/coredns/plugin/metrics"
 )
 
 func init() {
@@ -13,14 +14,14 @@ func init() {
 }
 
 func setup(c *caddy.Controller) error {
-	p, err := parseConfig(c)
+	f, err := parseConfig(c)
 	if err != nil {
 		return plugin.Error("filter", err)
 	}
 
 	c.OnStartup(func() error {
-		//once.Do(func() { metrics.MustRegister(c, blockCount) })
-		return p.Load()
+		metrics.MustRegister(c, BlockedCount)
+		return f.OnStartup()
 	})
 
 	c.OnShutdown(func() error {
@@ -29,8 +30,8 @@ func setup(c *caddy.Controller) error {
 	})
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		p.Next = next
-		return p
+		f.Next = next
+		return f
 	})
 
 	return nil

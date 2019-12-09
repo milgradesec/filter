@@ -26,16 +26,37 @@ func Test_ServeDNS(t *testing.T) {
 	if err = f.Load(); err != nil {
 		t.Fatal(err)
 	}
-
 	rec := dnstest.NewRecorder(&test.ResponseWriter{})
-	req := new(dns.Msg)
-	req.SetQuestion("example.org", dns.TypeA)
 
-	rcode, err := f.ServeDNS(context.TODO(), rec, req)
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name  string
+		block bool
+	}{
+		{"example.com", false},
+		{"instagram.com", false},
+		{"facebook.com", false},
+		{"adservice.google.com", true},
+		{"ads.example.com", true},
+		{"mipcwtf.lan", true},
+		{"example.taboola.com", true},
+		{"beacons7.gvt2.com", true},
+		{".", false},
 	}
-	if rcode != dns.RcodeSuccess {
-		t.Fatalf("Expected NOERROR but got %v", dns.RcodeToString[rcode])
+
+	for i, tt := range tests {
+		req := new(dns.Msg)
+		req.SetQuestion(tt.name, dns.TypeA)
+
+		rcode, err := f.ServeDNS(context.TODO(), rec, req)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if rcode == dns.RcodeNameError && !tt.block {
+			t.Errorf("Test %d: expected NOERROR but got %s", i, dns.RcodeToString[rcode])
+		}
+		if rcode != dns.RcodeSuccess && rcode != dns.RcodeNameError {
+			t.Errorf("Test %d: expected other rcode but got %s", i, dns.RcodeToString[rcode])
+		}
 	}
 }

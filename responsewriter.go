@@ -19,14 +19,16 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 			continue
 		}
 
-		/*cname := r.(*dns.CNAME).Target
-		if w.Plugin.Query(cname, false) {
-			log.Infof("Blocked CNAME")
+		cname := r.(*dns.CNAME).Target
+		log.Infof("CNAME %s of %s", cname, w.state.Name())
+		if w.Match(cname) {
+			log.Infof("Blocked CNAME %s of %s", cname, w.state.Name())
 
-			resp := new(dns.Msg)
-			resp.SetRcode(w.Request, dns.RcodeNameError)
-			return w.WriteMsg(resp)
-		}*/
+			if _, err := writeNXdomain(w, w.state.Req); err != nil {
+				return err
+			}
+			return nil
+		}
 	}
 	return w.ResponseWriter.WriteMsg(m)
 }

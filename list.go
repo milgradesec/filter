@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -14,7 +15,7 @@ type list struct {
 	prefixes   []string
 	suffixes   []string
 	subStrings []string
-	//regexes    []*regexp.Regexp
+	regexes    []*regexp.Regexp
 }
 
 func NewList() *list {
@@ -22,6 +23,9 @@ func NewList() *list {
 		hashtable: make(map[string]struct{}),
 	}
 }
+
+var regexpOps = []string{"[", "]", "(", ")", "|", "?",
+	"+", "$", "{", "}", "^"}
 
 func (l *list) Read(input io.ReadCloser) error {
 	if input == nil {
@@ -37,6 +41,16 @@ func (l *list) Read(input io.ReadCloser) error {
 		}
 		if strings.HasPrefix(line, "#") {
 			continue
+		}
+		for _, op := range regexpOps {
+			if strings.Contains(line, op) {
+				r, err := regexp.Compile(line)
+				if err != nil {
+					return err
+				}
+				l.regexes = append(l.regexes, r)
+				break
+			}
 		}
 		if strings.Contains(line, "*") {
 			if strings.HasSuffix(line, "*") && strings.HasPrefix(line, "*") {
@@ -61,6 +75,37 @@ func (l *list) Read(input io.ReadCloser) error {
 		}
 	}
 	return nil
+}
+
+func (l *list) Match(str string) bool {
+	_, q := l.hashtable[str]
+	if q {
+		return true
+	}
+	for _, prefix := range l.prefixes {
+		if strings.HasPrefix(str, prefix) {
+			return true
+		}
+	}
+	for _, suffix := range l.suffixes {
+		if strings.HasSuffix(str, suffix) {
+			return true
+		}
+		if str == strings.TrimPrefix(suffix, ".") {
+			return true
+		}
+	}
+	for _, substr := range l.subStrings {
+		if strings.Contains(str, substr) {
+			return true
+		}
+	}
+	for _, regex := range l.regexes {
+		if regex.MatchString(str) {
+			return true
+		}
+	}
+	return false
 }
 
 func (f *Filter) Load() error {
@@ -110,8 +155,8 @@ func (f *Filter) Load() error {
 	}
 
 	f.mu.Lock()
-	f.allow = whitelist
-	f.block = blocklist
+	f.whitelist = whitelist
+	f.blacklist = blocklist
 	f.mu.Unlock()
 
 	return nil
