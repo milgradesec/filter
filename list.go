@@ -84,7 +84,7 @@ func (f *Filter) Load() error {
 				return err
 			}
 
-			file, err := os.Open(cwd + list)
+			file, err := os.Open(cwd + strings.TrimPrefix(list, "."))
 			if err != nil {
 				return err
 			}

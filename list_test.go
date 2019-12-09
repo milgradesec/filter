@@ -1,14 +1,25 @@
 package filter
 
 import (
-	"testing"
-
 	"github.com/caddyserver/caddy"
+	"runtime"
+	"testing"
 )
 
-// Test loading lists
-
 func TestFilter_Load(t *testing.T) {
+	var input string
+	if runtime.GOOS == "windows" {
+		input = `filter {
+			allow D:\repos\filter\lists\whitelist.txt
+			block D:\repos\filter\lists\blacklist.txt
+		}`
+	} else {
+		input = `filter {
+			allow /home/travis/gopath/src/github.com/milgradesec/filter/lists/whitelist.txt
+			block /home/travis/gopath/src/github.com/milgradesec/filter/lists/blacklist.txt
+		}`
+	}
+
 	tests := []struct {
 		input   string
 		wantErr bool
@@ -21,10 +32,7 @@ func TestFilter_Load(t *testing.T) {
 			allow ./lists/whitelist.txt
 			block ./lists/blacklist.txt
 		}`, false},
-		{`filter {
-			allow D:\repos\filter\lists\whitelist.txt
-			block D:\repos\filter\lists\blacklist.txt
-		}`, false},
+		{input, false},
 	}
 	for _, tt := range tests {
 		c := caddy.NewTestController("dns", tt.input)
