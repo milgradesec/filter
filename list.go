@@ -113,7 +113,7 @@ func (f *Filter) Load() error {
 	blocklist := NewList()
 
 	for list, block := range f.lists {
-		log.Debugf("Loading list %v", list)
+		log.Infof("Loading list %v", list)
 
 		var src io.ReadCloser
 		if strings.HasPrefix(list, "http") {

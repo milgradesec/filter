@@ -38,12 +38,13 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 
 	state := request.Request{W: w, Req: r}
 	if f.Match(state.Name()) {
+		log.Infof("Bloqueado: %s", state.Name())
 		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
 		return writeNXdomain(w, r)
 	}
 
-	rw := &ResponseWriter{ResponseWriter: w, Filter: f, state: state}
-	return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
+	//rw := &ResponseWriter{ResponseWriter: w, Filter: f, state: state}
+	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
 }
 
 func (f *Filter) Match(str string) bool {

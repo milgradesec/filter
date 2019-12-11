@@ -15,6 +15,7 @@ func Test_ServeDNS(t *testing.T) {
 	c := caddy.NewTestController("dns", `filter  {
 		allow https://dl.paesacybersecurity.eu/lists/whitelist.txt
 		block https://dl.paesacybersecurity.eu/lists/blacklist.txt
+		block https://dl.paesacybersecurity.eu/lists/blocklist.txt
 	}`)
 
 	f, err := parseConfig(c)
@@ -39,6 +40,7 @@ func Test_ServeDNS(t *testing.T) {
 		{"ads.example.com", true},
 		{"mipcwtf.lan", true},
 		{"example.taboola.com", true},
+		{"taboola.com", true},
 		{"beacons7.gvt2.com", true},
 		{".", false},
 	}

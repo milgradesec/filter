@@ -20,7 +20,6 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 		}
 
 		cname := r.(*dns.CNAME).Target
-		log.Infof("CNAME %s of %s", cname, w.state.Name())
 		if w.Match(cname) {
 			log.Infof("Blocked CNAME %s of %s", cname, w.state.Name())
 
@@ -31,10 +30,4 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 		}
 	}
 	return w.ResponseWriter.WriteMsg(m)
-}
-
-func (w *ResponseWriter) Write(buf []byte) (int, error) {
-	log.Warning("Filter called with Write: not filtering reply")
-
-	return w.ResponseWriter.Write(buf)
 }
