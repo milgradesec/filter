@@ -3,6 +3,7 @@ package filter
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 
 	"github.com/coredns/coredns/plugin"
@@ -22,7 +23,7 @@ type Filter struct {
 	whitelist *list
 	blacklist *list
 
-	ttl uint32
+	//ttl uint32
 }
 
 func New() *Filter {
@@ -37,14 +38,15 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	}
 
 	state := request.Request{W: w, Req: r}
-	if f.Match(state.Name()) {
-		log.Infof("Bloqueado: %s", state.Name())
+	name := strings.TrimSuffix(state.Name(), ".")
+
+	if f.Match(name) {
 		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
 		return writeNXdomain(w, r)
 	}
 
-	//rw := &ResponseWriter{ResponseWriter: w, Filter: f, state: state}
-	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
+	rw := &ResponseWriter{ResponseWriter: w, Filter: f, state: state}
+	return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
 }
 
 func (f *Filter) Match(str string) bool {

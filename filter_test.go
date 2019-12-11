@@ -33,15 +33,15 @@ func Test_ServeDNS(t *testing.T) {
 		name  string
 		block bool
 	}{
-		{"example.com", false},
-		{"instagram.com", false},
-		{"facebook.com", false},
-		{"adservice.google.com", true},
-		{"ads.example.com", true},
-		{"mipcwtf.lan", true},
-		{"example.taboola.com", true},
-		{"taboola.com", true},
-		{"beacons7.gvt2.com", true},
+		{"example.com.", false},
+		{"instagram.com.", false},
+		{"facebook.com.", false},
+		{"adservice.google.com.", true},
+		{"ads.example.com.", true},
+		{"mipcwtf.lan.", true},
+		{"example.taboola.com.", true},
+		{"taboola.com.", true},
+		{"beacons7.gvt2.com.", true},
 		{".", false},
 	}
 
@@ -53,8 +53,8 @@ func Test_ServeDNS(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if rcode == dns.RcodeNameError && !tt.block {
-			t.Errorf("Test %d: expected NOERROR but got %s", i, dns.RcodeToString[rcode])
+		if rcode != dns.RcodeNameError && tt.block {
+			t.Errorf("Test %d: expected NXDOMAIN but got %s", i, dns.RcodeToString[rcode])
 		}
 		if rcode != dns.RcodeSuccess && rcode != dns.RcodeNameError {
 			t.Errorf("Test %d: expected other rcode but got %s", i, dns.RcodeToString[rcode])
