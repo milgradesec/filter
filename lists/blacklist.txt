@@ -4,6 +4,8 @@
 ###################################
 
 # Expresiones regulares
+^ad[0-9]*[-.]
+^ads[0-9]*[-.]
 ^beacons?[0-9]*[-.]
 
 # Bloqueado todo lo que empieza por:
@@ -85,6 +87,54 @@ log.*
 *.whatpush.co
 *.mobileapptracking.com
 
+# Nuevos
+*.1plusx.com
+*.4wmarketplace.com
+*.accordantmedia.com
+*.theadex.com
+*.adform.com
+*.adgear.com
+*.adition.com
+*.adux.com
+*.advanced-store.com
+*.affectv.com
+*.awin.com
+*.amobee.com
+*.atlassolutions.com
+*.bouncex.com
+*.captify.co.uk
+*.collectiveuk.com
+*.conversantmedia.eu
+*.criteo.com
+*.dataxu.com
+*.deltaprojects.com
+*.emerse.com
+*.emetriq.com
+*.nielsen.com
+*.exponential.com
+*.eyeota.com
+*.flashtalking.com
+*.fonecta.fi
+*.gamned.com
+*.groundtruth.com
+*.gumgum.com
+*.ignitionone.com
+*.weareilluma.com
+*.impressiondesk.com
+*.intent.com
+*.ipromote.com
+*.jaduda.com
+*.jadudamobile.com
+*.knorex.com
+*.kupona.de
+*.lightreaction.com
+*.lotame.com
+*.rakutenmarketing.com
+*.mediamath.com
+*.wearemiq.com
+*.groupm.com
+*.myntelligence.com
+
 # Google
 id.google.*
 *.googleadservices.com
@@ -108,11 +158,6 @@ wpad.*
 *.workgroup
 
 # Otros
-# searchads.msn.net
-# www.megdexchange.com
-# xch.smrtgs.com
-# allmygreatestlife.com
-# mygoodlives.com
-# tracker.ilibr.org
-# www.atresmediapublicidad.com
-# events.gfe.nvidia.com
+searchads.msn.net
+tracker.ilibr.org
+events.gfe.nvidia.com

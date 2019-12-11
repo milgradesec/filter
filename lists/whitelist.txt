@@ -3,9 +3,6 @@
 # Estos dominios nunca son bloqueados #
 #######################################
 
-# Nvidia
-gfe.nvidia.com
-
 # Video/Streaming
 nqs.nice264.com
 openload.co
@@ -13,37 +10,20 @@ streamplay.to
 www.rapidvideo.com
 s.youtube.com
 
-# Windows
-a-msedge.net
-fp.msedge.net
-msedge.net
-settings-win.data.microsoft.com
-
-# Windows Update
-windowsupdate.microsoft.com
-download.windowsupdate.com
-definitionupdates.microsoft.com
-adl.windows.com
-crl.microsoft.com
-ctldl.windowsupdate.com
-*.download.microsoft.com
-*.update.microsoft.com
-*.mp.microsoft.com
-*.wac.phicdn.net # Revocation lists
-
 # Windows Error Reporting
 watson.telemetry.microsoft.com
 oca.telemetry.microsoft.com
 *.blob.core.windows.net
 *.data.microsoft.com
 
-# Windows Defender 
-wdcp.microsoft.com
-wdcpalt.microsoft.com
-
 # SmartScreen
-*.urs.microsoft.com 
-*.smartscreen.microsoft.com
+apprep.smartscreen.microsoft.com
+
+# Android Error Reporting
+*.crashlytics.com
+
+# Spotify
+adeventtracker.spotify.com
 
 # Otros
 graph.instagram.com
@@ -52,6 +32,7 @@ storage.googleapis.com
 adf.ly
 safelinking.net
 s.click.aliexpress.com
+track.aliexpress.com
 best.aliexpress.com
 thepiratebay.org
 adpass.atresmedia.com
