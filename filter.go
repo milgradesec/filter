@@ -23,7 +23,7 @@ type Filter struct {
 	whitelist *list
 	blacklist *list
 
-	//ttl uint32
+	ttl uint32
 }
 
 func New() *Filter {
