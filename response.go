@@ -1,6 +1,9 @@
 package filter
 
-import "github.com/miekg/dns"
+import (
+	"github.com/miekg/dns"
+	"strings"
+)
 
 var defaultSOA = &dns.SOA{
 	// values copied from verisign's nonexistent .com domain
@@ -40,4 +43,8 @@ func writeNXdomain(w dns.ResponseWriter, r *dns.Msg) (int, error) {
 		return dns.RcodeServerFailure, err
 	}
 	return dns.RcodeNameError, nil
+}
+
+func trimTrailingDot(str string) string {
+	return strings.TrimSuffix(str, ".")
 }

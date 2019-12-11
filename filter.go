@@ -3,7 +3,6 @@ package filter
 import (
 	"context"
 	"errors"
-	"strings"
 	"sync"
 
 	"github.com/coredns/coredns/plugin"
@@ -38,7 +37,7 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	}
 
 	state := request.Request{W: w, Req: r}
-	name := strings.TrimSuffix(state.Name(), ".")
+	name := trimTrailingDot(state.Name())
 
 	if f.Match(name) {
 		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()

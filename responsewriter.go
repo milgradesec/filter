@@ -19,7 +19,7 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 			continue
 		}
 
-		cname := r.(*dns.CNAME).Target
+		cname := trimTrailingDot(r.(*dns.CNAME).Target)
 		if w.Match(cname) {
 			log.Infof("Blocked CNAME %s of %s", cname, w.state.Name())
 
