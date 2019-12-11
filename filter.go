@@ -38,7 +38,7 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 
 	state := request.Request{W: w, Req: r}
 	if f.Match(state.Name()) {
-		BlockedCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
+		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
 		return writeNXdomain(w, r)
 	}
 

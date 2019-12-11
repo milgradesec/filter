@@ -20,7 +20,7 @@ func setup(c *caddy.Controller) error {
 	}
 
 	c.OnStartup(func() error {
-		metrics.MustRegister(c, BlockedCount)
+		metrics.MustRegister(c, BlockCount)
 		return f.OnStartup()
 	})
 

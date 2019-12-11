@@ -43,7 +43,6 @@ func TestSetup(t *testing.T) {
 		if test.wantErr && err == nil {
 			t.Errorf("Test %d: expected error but found %s for input %s", i, err, test.input)
 		}
-
 		if !test.wantErr && err != nil {
 			t.Errorf("Test %d: expected no error but found one for input %s, got: %v", i, test.input, err)
 		}

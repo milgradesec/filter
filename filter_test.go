@@ -51,7 +51,6 @@ func Test_ServeDNS(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-
 		if rcode == dns.RcodeNameError && !tt.block {
 			t.Errorf("Test %d: expected NOERROR but got %s", i, dns.RcodeToString[rcode])
 		}

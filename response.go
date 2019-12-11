@@ -32,7 +32,7 @@ func genSOA(r *dns.Msg) []dns.RR {
 func writeNXdomain(w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	m := new(dns.Msg)
 	m.SetRcode(r, dns.RcodeNameError)
-	m.Authoritative, m.RecursionAvailable, m.Compress = true, true, true
+	m.Authoritative, m.RecursionAvailable = true, true
 	m.Ns = genSOA(r)
 
 	err := w.WriteMsg(m)
