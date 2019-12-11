@@ -1,121 +1,72 @@
 package filter
 
 import (
-	"bufio"
-	"os"
-	"regexp"
-	"strings"
+	"context"
+	"errors"
+	"sync"
+
+	"github.com/coredns/coredns/plugin"
+	"github.com/coredns/coredns/plugin/metrics"
+	clog "github.com/coredns/coredns/plugin/pkg/log"
+	"github.com/coredns/coredns/request"
+	"github.com/miekg/dns"
 )
 
-type filterType int
+var log = clog.NewWithPlugin("filter")
 
-const (
-	white filterType = iota
-	black
-	private
-)
+type Filter struct {
+	Next plugin.Handler
 
-type filter struct {
-	domains    map[string]struct{}
-	prefixes   []string
-	suffixes   []string
-	subStrings []string
-	regexes    []*regexp.Regexp
+	lists     map[string]bool
+	mu        sync.RWMutex
+	whitelist *list
+	blacklist *list
 
-	Type filterType
-	Path string
+	ttl uint32
 }
 
-func NewFilter(path string) (*filter, error) {
-	f := &filter{
-		domains: make(map[string]struct{}),
-		Type:    black,
-		Path:    path,
+func New() *Filter {
+	return &Filter{
+		lists: make(map[string]bool),
 	}
-
-	err := f.Load()
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
 }
 
-func (f *filter) Query(domain string) bool {
-	_, q := f.domains[domain]
-	if q {
+func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+	if len(r.Question) != 1 {
+		return dns.RcodeFormatError, errors.New("DNS request with multiple questions")
+	}
+
+	state := request.Request{W: w, Req: r}
+	if f.Match(state.Name()) {
+		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
+		return writeNXdomain(w, r)
+	}
+
+	rw := &ResponseWriter{ResponseWriter: w, Filter: f, state: state}
+	return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
+}
+
+func (f *Filter) Match(str string) bool {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	if f.whitelist.Match(str) {
+		return false
+	}
+	if f.blacklist.Match(str) {
 		return true
-	}
-	for _, prefix := range f.prefixes {
-		if strings.HasPrefix(domain, prefix) {
-			return true
-		}
-	}
-	for _, suffix := range f.suffixes {
-		if strings.HasSuffix(domain, suffix) {
-			return true
-		}
-		if domain == strings.TrimPrefix(suffix, ".") {
-			return true
-		}
-	}
-	for _, substr := range f.subStrings {
-		if strings.Contains(domain, substr) {
-			return true
-		}
-	}
-	for _, regex := range f.regexes {
-		if regex.MatchString(domain) {
-			return true
-		}
 	}
 	return false
 }
 
-func (f *filter) Load() error {
-	file, err := os.Open(f.Path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+func (f *Filter) OnStartup() error {
+	return f.Load()
+}
 
-	var regexpOps = []string{"[", "]", "(", ")", "|", "?", "+", "$", "{", "}", "^"}
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if line == "" {
-			continue
-		}
-		if strings.HasPrefix(line, "#") {
-			continue
-		}
-		for _, op := range regexpOps {
-			if strings.Contains(line, op) {
-				r, err := regexp.Compile(line)
-				if err != nil {
-					return err
-				}
-				f.regexes = append(f.regexes, r)
-				break
-			}
-		}
-		if strings.Contains(line, "*") {
-			if strings.HasSuffix(line, "*") && strings.HasPrefix(line, "*") {
-				domain := strings.TrimPrefix(line, "*")
-				domain = strings.TrimSuffix(domain, "*")
-				f.subStrings = append(f.subStrings, domain)
-			}
-			if strings.HasSuffix(scanner.Text(), "*") {
-				domain := strings.TrimSuffix(line, "*")
-				f.prefixes = append(f.prefixes, domain)
-			}
-			if strings.HasPrefix(scanner.Text(), "*") {
-				domain := strings.TrimPrefix(line, "*")
-				f.suffixes = append(f.suffixes, domain)
-			}
-		} else {
-			f.domains[line] = struct{}{}
-		}
-	}
+func (f *Filter) OnShutdown() error {
 	return nil
+}
+
+func (f *Filter) Name() string {
+	return "filter"
 }
