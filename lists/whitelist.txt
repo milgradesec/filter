@@ -19,9 +19,6 @@ oca.telemetry.microsoft.com
 # SmartScreen
 apprep.smartscreen.microsoft.com
 
-# Android Error Reporting
-*.crashlytics.com
-
 # Spotify
 adeventtracker.spotify.com
 
@@ -34,8 +31,5 @@ safelinking.net
 s.click.aliexpress.com
 track.aliexpress.com
 best.aliexpress.com
-thepiratebay.org
 adpass.atresmedia.com
 *.jtvnw.net
-clients1.google.com
-*.williamhill.es
