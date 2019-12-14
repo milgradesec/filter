@@ -28,9 +28,8 @@ type Filter struct {
 	blacklist *list
 	ttl       uint32
 
-	ln   net.Listener
-	mux  *http.ServeMux
-	done bool
+	ln  net.Listener
+	mux *http.ServeMux
 }
 
 func New() *Filter {
