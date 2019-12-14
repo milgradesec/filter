@@ -13,6 +13,9 @@ type ResponseWriter struct {
 }
 
 func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
+	if m.Rcode != dns.RcodeSuccess {
+		return nil
+	}
 	for _, r := range m.Answer {
 		hdr := r.Header()
 		if hdr.Class != dns.ClassINET || hdr.Rrtype != dns.TypeCNAME {
