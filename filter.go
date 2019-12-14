@@ -3,11 +3,16 @@ package filter
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net"
 	"sync"
+
+	"net/http"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/metrics"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
+	"github.com/coredns/coredns/plugin/pkg/reuseport"
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
 )
@@ -21,8 +26,11 @@ type Filter struct {
 	mu        sync.RWMutex
 	whitelist *list
 	blacklist *list
+	ttl       uint32
 
-	ttl uint32
+	ln   net.Listener
+	mux  *http.ServeMux
+	done bool
 }
 
 func New() *Filter {
@@ -62,11 +70,35 @@ func (f *Filter) Match(str string) bool {
 }
 
 func (f *Filter) OnStartup() error {
+	ln, err := reuseport.Listen("tcp", ":8080")
+	if err != nil {
+		return err
+	}
+
+	f.ln = ln
+	f.mux = http.NewServeMux()
+
+	f.mux.HandleFunc("/reload", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+
+		fmt.Fprint(w, "Reloading lists")
+		err := f.Reload()
+		if err != nil {
+			fmt.Fprintf(w, "Reload failed: %v", err)
+			return
+		}
+		fmt.Fprint(w, "Lists reloaded successfully")
+	})
+
+	go func() {
+		http.Serve(f.ln, f.mux) //nolint
+	}()
+
 	return f.Load()
 }
 
 func (f *Filter) OnShutdown() error {
-	return nil
+	return f.ln.Close()
 }
 
 func (f *Filter) Name() string {

@@ -34,6 +34,7 @@ func Test_ServeDNS(t *testing.T) {
 		block bool
 	}{
 		{"example.com.", false},
+		{"openload.co", false},
 		{"instagram.com.", false},
 		{"facebook.com.", false},
 		{"adservice.google.com.", true},
