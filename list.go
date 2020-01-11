@@ -61,7 +61,7 @@ func NewPatternMatcher() *PatternMatcher {
 	}
 }
 
-var regexpOps = []string{"[", "]", "(", ")", "|", "?",
+var regexpRunes = []string{"[", "]", "(", ")", "|", "?",
 	"+", "$", "{", "}", "^"}
 
 func (l *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
@@ -78,7 +78,7 @@ func (l *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
-		for _, op := range regexpOps {
+		for _, op := range regexpRunes {
 			if strings.Contains(line, op) {
 				r, err := regexp.Compile(line)
 				if err != nil {
