@@ -8,9 +8,46 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
-type list struct {
+type List struct {
+	Path    string
+	Block   bool
+	LastMod time.Time
+}
+
+func (l *List) Open() (src io.ReadCloser, err error) {
+	if strings.HasPrefix(l.Path, "http") {
+		resp, err := http.Get(l.Path)
+		if err != nil {
+			return nil, err
+		}
+		src = resp.Body
+
+	} else if strings.HasPrefix(l.Path, ".") {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+
+		file, err := os.Open(cwd + strings.TrimPrefix(l.Path, "."))
+		if err != nil {
+			return nil, err
+		}
+		src = file
+
+	} else {
+		file, err := os.Open(l.Path)
+		if err != nil {
+			return nil, err
+		}
+		src = file
+	}
+	return src, nil
+}
+
+type PatternMatcher struct {
 	hashtable  map[string]struct{}
 	prefixes   []string
 	suffixes   []string
@@ -18,8 +55,8 @@ type list struct {
 	regexes    []*regexp.Regexp
 }
 
-func NewList() *list {
-	return &list{
+func NewPatternMatcher() *PatternMatcher {
+	return &PatternMatcher{
 		hashtable: make(map[string]struct{}),
 	}
 }
@@ -27,13 +64,12 @@ func NewList() *list {
 var regexpOps = []string{"[", "]", "(", ")", "|", "?",
 	"+", "$", "{", "}", "^"}
 
-func (l *list) Read(input io.ReadCloser) error {
-	if input == nil {
-		return errors.New("invalid list source")
+func (l *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
+	if r == nil {
+		return 0, errors.New("invalid list source")
 	}
-	defer input.Close()
 
-	scanner := bufio.NewScanner(input)
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "" {
@@ -46,7 +82,7 @@ func (l *list) Read(input io.ReadCloser) error {
 			if strings.Contains(line, op) {
 				r, err := regexp.Compile(line)
 				if err != nil {
-					return err
+					return 0, err
 				}
 				l.regexes = append(l.regexes, r)
 				break
@@ -71,13 +107,13 @@ func (l *list) Read(input io.ReadCloser) error {
 		}
 
 		if scanner.Err() != nil {
-			return scanner.Err()
+			return 0, scanner.Err()
 		}
 	}
-	return nil
+	return n, nil
 }
 
-func (l *list) Match(str string) bool {
+func (l *PatternMatcher) Match(str string) bool {
 	_, q := l.hashtable[str]
 	if q {
 		return true
@@ -106,60 +142,4 @@ func (l *list) Match(str string) bool {
 		}
 	}
 	return false
-}
-
-func (f *Filter) Load() error {
-	whitelist := NewList()
-	blocklist := NewList()
-
-	for list, block := range f.lists {
-		var src io.ReadCloser
-		if strings.HasPrefix(list, "http") {
-			resp, err := http.Get(list)
-			if err != nil {
-				return err
-			}
-			src = resp.Body
-
-		} else if strings.HasPrefix(list, ".") {
-			cwd, err := os.Getwd()
-			if err != nil {
-				return err
-			}
-
-			file, err := os.Open(cwd + strings.TrimPrefix(list, "."))
-			if err != nil {
-				return err
-			}
-			src = file
-
-		} else {
-			file, err := os.Open(list)
-			if err != nil {
-				return err
-			}
-			src = file
-		}
-
-		if block {
-			if err := blocklist.Read(src); err != nil {
-				return err
-			}
-		} else {
-			if err := whitelist.Read(src); err != nil {
-				return err
-			}
-		}
-	}
-
-	f.mu.Lock()
-	f.whitelist = whitelist
-	f.blacklist = blocklist
-	f.mu.Unlock()
-
-	return nil
-}
-
-func (f *Filter) Reload() error {
-	return f.Load()
 }

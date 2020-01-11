@@ -45,7 +45,7 @@ func setup(c *caddy.Controller) error {
 }
 
 func parseConfig(c *caddy.Controller) (*Filter, error) {
-	f := New()
+	f := &Filter{}
 	for c.Next() {
 		for c.NextBlock() {
 			if err := parseBlock(c, f); err != nil {
@@ -54,7 +54,7 @@ func parseConfig(c *caddy.Controller) (*Filter, error) {
 		}
 	}
 
-	if len(f.lists) == 0 {
+	if len(f.Lists) == 0 {
 		return nil, c.ArgErr()
 	}
 	return f, nil
@@ -66,13 +66,15 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 		if !c.NextArg() {
 			return c.ArgErr()
 		}
-		f.lists[c.Val()] = false
+		l := &List{Path: c.Val(), Block: false}
+		f.Lists = append(f.Lists, l)
 
 	case "block":
 		if !c.NextArg() {
 			return c.ArgErr()
 		}
-		f.lists[c.Val()] = true
+		l := &List{Path: c.Val(), Block: true}
+		f.Lists = append(f.Lists, l)
 
 	case "ttl":
 		if !c.NextArg() {
@@ -83,7 +85,7 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 		if err != nil {
 			return err
 		}
-		f.ttl = uint32(ttl)
+		f.BlockedTtl = uint32(ttl)
 
 	default:
 		return c.Errf("unknown setting '%s' ", c.Val())
