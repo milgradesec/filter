@@ -4,24 +4,23 @@
 ###################################
 
 # Expresiones regulares
-^ad[0-9]*[-.]
-^ads[0-9]*[-.]
-^beacons?[0-9]*[-.]
+^ad[0-9]*[_.-]
+^ads[0-9]*[_.-]
+^adtrack(er|ing)?[0-9]*[_.-]
+^adse?rv(er?|ice)?s?[0-9]*[_.-]
+^advert(s|is(ing|ements?))?[0-9]*[_.-]
+^analytics?[_.-]
+^beacons?[0-9]*[_.-]
+^banners?[_.-]
+^count(ers?)?[0-9]*[_.-]
+^stat(s|istics)?[0-9]*[_.-]
+^pixels?[_.-]
+^track(ers?|ing)?[0-9]*[_.-]
 
 # Bloqueado todo lo que empieza por:
-ad.*
-ads.*
-adservice.*
-adserver.*
 adbroker.*
-adtrack.*
 advertising.*
-analytics.*
-banner.*
-banners.*
 telemetry.*
-track.*
-tracking.*
 log.*
 
 # Bloqueado todo lo que acaba por:
@@ -86,8 +85,6 @@ log.*
 *.whatpush.com
 *.whatpush.co
 *.mobileapptracking.com
-
-# Nuevos
 *.1plusx.com
 *.4wmarketplace.com
 *.accordantmedia.com
@@ -134,6 +131,7 @@ log.*
 *.wearemiq.com
 *.groupm.com
 *.myntelligence.com
+*.adzooma.com
 
 # Google
 id.google.*
