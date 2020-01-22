@@ -2,7 +2,6 @@ package filter
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"time"
 
@@ -29,10 +28,6 @@ type Filter struct {
 }
 
 func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
-	if len(r.Question) != 1 {
-		return dns.RcodeFormatError, errors.New("DNS request with multiple questions")
-	}
-
 	state := request.Request{W: w, Req: r}
 	name := trimTrailingDot(state.Name())
 
@@ -41,8 +36,8 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		return writeNXdomain(w, r)
 	}
 
-	rw := &ResponseWriter{ResponseWriter: w, Filter: f, state: state}
-	return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
+	//rw := &ResponseWriter{ResponseWriter: w, Filter: f, state: state}
+	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
 }
 
 func (f *Filter) Match(str string) bool {
