@@ -26,10 +26,6 @@ func TestSetup(t *testing.T) {
 			ttl
 			}`, true},
 		{`filter {
-			allow https://dl.paesacybersecurity.eu/lists/whitelist.txt
-			block https://dl.paesacybersecurity.eu/lists/blacklist.txt
-		}`, false},
-		{`filter {
 			allow ./lists/whitelist.txt
 			block ./lists/blacklist.txt
 			ttl 600

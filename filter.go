@@ -2,7 +2,6 @@ package filter
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/coredns/coredns/plugin"
@@ -21,10 +20,12 @@ type Filter struct {
 	BlockedTtl     uint32
 	ReloadInterval time.Duration
 
-	sync.RWMutex
 	whitelist *PatternMatcher
 	blacklist *PatternMatcher
-	stop      chan bool
+
+	//ln   net.Listener
+	//mux  *http.ServeMux
+	stop chan bool
 }
 
 func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
@@ -35,15 +36,10 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
 		return writeNXdomain(w, r)
 	}
-
-	//rw := &ResponseWriter{ResponseWriter: w, Filter: f, state: state}
 	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
 }
 
 func (f *Filter) Match(str string) bool {
-	f.RLock()
-	defer f.RUnlock()
-
 	if f.whitelist.Match(str) {
 		return false
 	}
@@ -54,6 +50,21 @@ func (f *Filter) Match(str string) bool {
 }
 
 func (f *Filter) OnStartup() error {
+	/*ln, err := reuseport.Listen("tcp", "8080")
+	if err != nil {
+		return err
+	}
+	f.ln = ln
+	f.mux = http.NewServeMux()
+
+	f.mux.HandleFunc("/reload", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, "Reloading...") //nolint
+	})
+
+	go func() {
+		http.Serve(f.ln, f.mux) //nolint
+	}()*/
 	f.stop = make(chan bool)
 	return f.Load()
 }

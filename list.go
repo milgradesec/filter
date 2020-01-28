@@ -4,28 +4,18 @@ import (
 	"bufio"
 	"errors"
 	"io"
-	"net/http"
 	"os"
 	"regexp"
 	"strings"
-	"time"
 )
 
 type List struct {
-	Path    string
-	Block   bool
-	LastMod time.Time
+	Path  string
+	Block bool
 }
 
 func (l *List) Open() (src io.ReadCloser, err error) {
-	if strings.HasPrefix(l.Path, "http") {
-		resp, err := http.Get(l.Path)
-		if err != nil {
-			return nil, err
-		}
-		src = resp.Body
-
-	} else if strings.HasPrefix(l.Path, ".") {
+	if strings.HasPrefix(l.Path, ".") {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return nil, err
