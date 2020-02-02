@@ -44,8 +44,8 @@ func setup(c *caddy.Controller) error {
 	return nil
 }
 
-func parseConfig(c *caddy.Controller) (*Filter, error) {
-	f := &Filter{}
+func parseConfig(c *caddy.Controller) (*filter, error) {
+	f := &filter{}
 	for c.Next() {
 		for c.NextBlock() {
 			if err := parseBlock(c, f); err != nil {
@@ -60,7 +60,7 @@ func parseConfig(c *caddy.Controller) (*Filter, error) {
 	return f, nil
 }
 
-func parseBlock(c *caddy.Controller, f *Filter) error {
+func parseBlock(c *caddy.Controller, f *filter) error {
 	switch c.Val() {
 	case "allow":
 		if !c.NextArg() {

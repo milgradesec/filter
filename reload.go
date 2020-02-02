@@ -1,6 +1,6 @@
 package filter
 
-func (f *Filter) Load() error {
+func (f *filter) Load() error {
 	whitelist := NewPatternMatcher()
 	blocklist := NewPatternMatcher()
 

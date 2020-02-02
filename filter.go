@@ -13,22 +13,18 @@ import (
 
 var log = clog.NewWithPlugin("filter")
 
-type Filter struct {
+type filter struct {
 	Next plugin.Handler
 
-	Lists          []*List //map[string]bool
+	Lists          []*List
 	BlockedTtl     uint32
 	ReloadInterval time.Duration
 
 	whitelist *PatternMatcher
 	blacklist *PatternMatcher
-
-	//ln   net.Listener
-	//mux  *http.ServeMux
-	stop chan bool
 }
 
-func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+func (f *filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
 	name := trimTrailingDot(state.Name())
 
@@ -39,7 +35,7 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
 }
 
-func (f *Filter) Match(str string) bool {
+func (f *filter) Match(str string) bool {
 	if f.whitelist.Match(str) {
 		return false
 	}
@@ -49,31 +45,14 @@ func (f *Filter) Match(str string) bool {
 	return false
 }
 
-func (f *Filter) OnStartup() error {
-	/*ln, err := reuseport.Listen("tcp", "8080")
-	if err != nil {
-		return err
-	}
-	f.ln = ln
-	f.mux = http.NewServeMux()
-
-	f.mux.HandleFunc("/reload", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, "Reloading...") //nolint
-	})
-
-	go func() {
-		http.Serve(f.ln, f.mux) //nolint
-	}()*/
-	f.stop = make(chan bool)
+func (f *filter) OnStartup() error {
 	return f.Load()
 }
 
-func (f *Filter) OnShutdown() error {
-	close(f.stop)
+func (f *filter) OnShutdown() error {
 	return nil
 }
 
-func (f *Filter) Name() string {
+func (f *filter) Name() string {
 	return "filter"
 }
