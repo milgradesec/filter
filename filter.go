@@ -32,7 +32,13 @@ func (f *filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
 		return writeNXdomain(w, r)
 	}
-	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
+
+	rw := &ResponseWriter{
+		ResponseWriter: w,
+		filter:         f,
+		state:          state,
+	}
+	return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
 }
 
 func (f *filter) Match(str string) bool {
