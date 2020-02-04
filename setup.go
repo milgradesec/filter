@@ -24,10 +24,6 @@ func setup(c *caddy.Controller) error {
 		return f.OnStartup()
 	})
 
-	c.OnRestartFailed(func() error {
-		return f.OnStartup()
-	})
-
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		f.Next = next
 		return f
