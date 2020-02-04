@@ -24,14 +24,6 @@ func setup(c *caddy.Controller) error {
 		return f.OnStartup()
 	})
 
-	c.OnShutdown(func() error {
-		return f.OnShutdown()
-	})
-
-	c.OnRestart(func() error {
-		return f.OnShutdown()
-	})
-
 	c.OnRestartFailed(func() error {
 		return f.OnStartup()
 	})

@@ -49,10 +49,6 @@ func (f *filter) OnStartup() error {
 	return f.Load()
 }
 
-func (f *filter) OnShutdown() error {
-	return nil
-}
-
 func (f *filter) Name() string {
 	return "filter"
 }
