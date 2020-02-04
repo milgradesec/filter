@@ -24,8 +24,6 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 
 		cname := trimTrailingDot(r.(*dns.CNAME).Target)
 		if w.Match(cname) {
-			log.Infof("Blocked CNAME %s of %s", cname, w.state.Name())
-
 			if _, err := writeNXdomain(w, w.state.Req); err != nil {
 				return err
 			}
