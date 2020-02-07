@@ -13,12 +13,10 @@ type ResponseWriter struct {
 }
 
 func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
-	if m.Rcode != dns.RcodeSuccess {
-		return nil
-	}
-	if w.whitelist.Match(w.state.Name()) {
+	if m.Rcode != dns.RcodeSuccess || w.whitelist.Match(w.state.Name()) {
 		return w.ResponseWriter.WriteMsg(m)
 	}
+
 	for _, r := range m.Answer {
 		hdr := r.Header()
 		if hdr.Class != dns.ClassINET || hdr.Rrtype != dns.TypeCNAME {
