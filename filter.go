@@ -21,9 +21,9 @@ type filter struct {
 
 func (f *filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
-	name := trimTrailingDot(state.Name())
+	qname := trimTrailingDot(state.Name())
 
-	if f.Match(name) {
+	if f.Match(qname) {
 		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
 		return writeNXdomain(w, r)
 	}

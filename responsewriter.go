@@ -13,7 +13,8 @@ type ResponseWriter struct {
 }
 
 func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
-	if m.Rcode != dns.RcodeSuccess || w.whitelist.Match(w.state.Name()) {
+	qname := trimTrailingDot(w.state.Name())
+	if m.Rcode != dns.RcodeSuccess || w.whitelist.Match(qname) {
 		return w.ResponseWriter.WriteMsg(m)
 	}
 
