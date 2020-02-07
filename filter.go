@@ -2,23 +2,18 @@ package filter
 
 import (
 	"context"
-	"time"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/metrics"
-	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
 )
 
-var log = clog.NewWithPlugin("filter")
-
 type filter struct {
 	Next plugin.Handler
 
-	Lists          []*List
-	BlockedTtl     uint32
-	ReloadInterval time.Duration
+	Lists      []*List
+	BlockedTtl uint32
 
 	whitelist *PatternMatcher
 	blacklist *PatternMatcher
