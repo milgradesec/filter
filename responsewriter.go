@@ -7,7 +7,7 @@ import (
 
 type ResponseWriter struct {
 	dns.ResponseWriter
-	*filter
+	*Filter
 
 	state request.Request
 }

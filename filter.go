@@ -9,17 +9,23 @@ import (
 	"github.com/miekg/dns"
 )
 
-type filter struct {
-	Next plugin.Handler
-
-	Lists      []*List
-	BlockedTtl uint32
+// Filter represents as a plugin instance that can filter and block requests based
+// on predefined lists.
+type Filter struct {
+	Lists []*List
 
 	whitelist *PatternMatcher
 	blacklist *PatternMatcher
+	ttl       uint32 // ttl used in blocked requests
+
+	Next plugin.Handler
 }
 
-func (f *filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+// Name implements plugin.Handler.
+func (f *Filter) Name() string { return "filter" }
+
+// ServeDNS implements plugin.Handler.
+func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
 	qname := trimTrailingDot(state.Name())
 
@@ -30,23 +36,28 @@ func (f *filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 
 	rw := &ResponseWriter{
 		ResponseWriter: w,
-		filter:         f,
+		Filter:         f,
 		state:          state,
 	}
 	return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
 }
 
-func (f *filter) Match(str string) bool {
-	if f.whitelist.Match(str) {
+// Match determines if the requested domain should be block
+func (f *Filter) Match(qname string) bool {
+	if f.whitelist.Match(qname) {
 		return false
 	}
-	if f.blacklist.Match(str) {
+	if f.blacklist.Match(qname) {
 		return true
 	}
 	return false
 }
 
-func (f *filter) Load() error {
+// OnStartup loads lists at plugin startup
+func (f *Filter) OnStartup() error { return f.Load() }
+
+// Load loads the lists from disk
+func (f *Filter) Load() error {
 	whitelist := NewPatternMatcher()
 	blocklist := NewPatternMatcher()
 
@@ -70,12 +81,4 @@ func (f *filter) Load() error {
 	f.whitelist = whitelist
 	f.blacklist = blocklist
 	return nil
-}
-
-func (f *filter) OnStartup() error {
-	return f.Load()
-}
-
-func (f *filter) Name() string {
-	return "filter"
 }
