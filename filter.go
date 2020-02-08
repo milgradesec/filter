@@ -9,7 +9,7 @@ import (
 	"github.com/miekg/dns"
 )
 
-// Filter represents as a plugin instance that can filter and block requests based
+// Filter represents a plugin instance that can filter and block requests based
 // on predefined lists.
 type Filter struct {
 	Lists []*List

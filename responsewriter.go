@@ -13,7 +13,7 @@ type ResponseWriter struct {
 	state request.Request
 }
 
-// WriteMsg implements dns.ResponseWriter
+// WriteMsg implements dns.ResponseWriter.
 func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 	qname := trimTrailingDot(w.state.Name())
 	if m.Rcode != dns.RcodeSuccess || w.whitelist.Match(qname) {
