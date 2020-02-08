@@ -2,7 +2,6 @@ package filter
 
 import (
 	"github.com/miekg/dns"
-	"strings"
 )
 
 var defaultSOA = &dns.SOA{
@@ -43,8 +42,4 @@ func writeNXdomain(w dns.ResponseWriter, r *dns.Msg) (int, error) {
 		return dns.RcodeServerFailure, err
 	}
 	return dns.RcodeNameError, nil
-}
-
-func trimTrailingDot(str string) string {
-	return strings.TrimSuffix(str, ".")
 }

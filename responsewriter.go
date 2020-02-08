@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"strings"
+
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
 )
@@ -15,7 +17,8 @@ type ResponseWriter struct {
 
 // WriteMsg implements dns.ResponseWriter.
 func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
-	qname := trimTrailingDot(w.state.Name())
+	qname := strings.TrimSuffix(w.state.Name(), ".")
+
 	if m.Rcode != dns.RcodeSuccess || w.whitelist.Match(qname) {
 		return w.ResponseWriter.WriteMsg(m)
 	}
@@ -26,7 +29,7 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 			continue
 		}
 
-		cname := trimTrailingDot(r.(*dns.CNAME).Target)
+		cname := strings.TrimSuffix(r.(*dns.CNAME).Target, ".")
 		if w.Match(cname) {
 			if _, err := writeNXdomain(w, w.state.Req); err != nil {
 				return err

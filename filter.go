@@ -2,6 +2,7 @@ package filter
 
 import (
 	"context"
+	"strings"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/metrics"
@@ -27,7 +28,7 @@ func (f *Filter) Name() string { return "filter" }
 // ServeDNS implements plugin.Handler.
 func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
-	qname := trimTrailingDot(state.Name())
+	qname := strings.TrimSuffix(state.Name(), ".")
 
 	if f.Match(qname) {
 		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
