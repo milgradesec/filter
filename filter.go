@@ -16,7 +16,7 @@ type Filter struct {
 
 	whitelist *PatternMatcher
 	blacklist *PatternMatcher
-	ttl       uint32 // ttl used in blocked requests
+	ttl       uint32 // ttl used in blocked requests.
 
 	Next plugin.Handler
 }
@@ -42,7 +42,7 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
 }
 
-// Match determines if the requested domain should be blocked
+// Match determines if the requested domain should be blocked.
 func (f *Filter) Match(qname string) bool {
 	if f.whitelist.Match(qname) {
 		return false
@@ -53,10 +53,10 @@ func (f *Filter) Match(qname string) bool {
 	return false
 }
 
-// OnStartup loads lists at plugin startup
+// OnStartup loads lists at plugin startup.
 func (f *Filter) OnStartup() error { return f.Load() }
 
-// Load loads the lists from disk
+// Load loads the lists from disk.
 func (f *Filter) Load() error {
 	whitelist := NewPatternMatcher()
 	blocklist := NewPatternMatcher()
