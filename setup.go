@@ -9,9 +9,7 @@ import (
 	"github.com/coredns/coredns/plugin/metrics"
 )
 
-func init() {
-	plugin.Register("filter", setup)
-}
+func init() { plugin.Register("filter", setup) }
 
 func setup(c *caddy.Controller) error {
 	f, err := parseConfig(c)
