@@ -42,7 +42,7 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
 }
 
-// Match determines if the requested domain should be block
+// Match determines if the requested domain should be blocked
 func (f *Filter) Match(qname string) bool {
 	if f.whitelist.Match(qname) {
 		return false
