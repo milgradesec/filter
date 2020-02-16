@@ -18,6 +18,7 @@ type Filter struct {
 	whitelist *PatternMatcher
 	blacklist *PatternMatcher
 	ttl       uint32 // ttl used in blocked requests.
+	uncloak   bool   // Perform CNAME uncloaking.
 
 	Next plugin.Handler
 }
@@ -35,12 +36,15 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		return writeNXdomain(w, r)
 	}
 
-	rw := &ResponseWriter{
-		ResponseWriter: w,
-		Filter:         f,
-		state:          state,
+	if f.uncloak {
+		rw := &ResponseWriter{
+			ResponseWriter: w,
+			Filter:         f,
+			state:          state,
+		}
+		return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
 	}
-	return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
+	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
 }
 
 // Match determines if the requested domain should be blocked.

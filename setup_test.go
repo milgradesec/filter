@@ -29,6 +29,7 @@ func TestSetup(t *testing.T) {
 			allow ./lists/whitelist.txt
 			block ./lists/blacklist.txt
 			ttl 600
+			uncloak
 		}`, false},
 	}
 

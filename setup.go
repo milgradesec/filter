@@ -73,6 +73,9 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 		}
 		f.ttl = uint32(ttl)
 
+	case "uncloak":
+		f.uncloak = true
+
 	default:
 		return c.Errf("unknown setting '%s' ", c.Val())
 	}
