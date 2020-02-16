@@ -12,8 +12,8 @@ func TestFilter_Load(t *testing.T) {
 		wantErr bool
 	}{
 		{`filter {
-			allow ./lists/whitelist.txt
-			block ./lists/blacklist.txt
+			allow ./testdata/whitelist.txt
+			block ./testdata/blacklist.txt
 		}`, false},
 	}
 	for _, tt := range tests {

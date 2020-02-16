@@ -26,8 +26,8 @@ func TestSetup(t *testing.T) {
 			ttl
 			}`, true},
 		{`filter {
-			allow ./lists/whitelist.txt
-			block ./lists/blacklist.txt
+			allow ./testdata/whitelist.txt
+			block ./testdata/blacklist.txt
 			ttl 600
 			uncloak
 		}`, false},
