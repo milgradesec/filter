@@ -17,8 +17,7 @@ type Filter struct {
 
 	whitelist *PatternMatcher
 	blacklist *PatternMatcher
-	ttl       uint32 // ttl used in blocked requests.
-	uncloak   bool   // Perform CNAME uncloaking.
+	uncloak   bool // Perform CNAME uncloaking.
 
 	Next plugin.Handler
 }

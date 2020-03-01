@@ -1,8 +1,6 @@
 package filter
 
 import (
-	"strconv"
-
 	"github.com/caddyserver/caddy"
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
@@ -61,17 +59,6 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 		}
 		l := &List{Path: c.Val(), Block: true}
 		f.Lists = append(f.Lists, l)
-
-	case "ttl":
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-
-		ttl, err := strconv.Atoi(c.Val())
-		if err != nil {
-			return err
-		}
-		f.ttl = uint32(ttl)
 
 	case "uncloak":
 		f.uncloak = true

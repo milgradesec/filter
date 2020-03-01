@@ -23,12 +23,10 @@ func TestSetup(t *testing.T) {
 		{`filter {
 			block 
 			allow
-			ttl
 			}`, true},
 		{`filter {
 			allow ./testdata/whitelist.txt
 			block ./testdata/blacklist.txt
-			ttl 600
 			uncloak
 		}`, false},
 	}
