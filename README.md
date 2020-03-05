@@ -13,6 +13,7 @@ CoreDNS plugin that blocks requests based on lists and rules
     filter {
         allow ./lists/whitelist.txt
         block ./lists/blacklist.txt
+        uncloak
     }
     forward . 1.1.1.1
 }
