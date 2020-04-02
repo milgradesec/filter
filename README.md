@@ -6,6 +6,12 @@
 
 CoreDNS plugin that blocks requests based on lists and rules
 
+## Features
+
+* Regex and simple string matching
+* Detects CNAME cloacking
+* Responses allow negative caching
+
 ## Usage
 
 ~~~ corefile
