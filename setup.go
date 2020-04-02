@@ -7,16 +7,20 @@ import (
 	"github.com/coredns/coredns/plugin/metrics"
 )
 
-func init() { plugin.Register("filter", setup) }
+const pluginName = "filter"
+
+func init() {
+	plugin.Register(pluginName, setup)
+}
 
 func setup(c *caddy.Controller) error {
 	f, err := parseConfig(c)
 	if err != nil {
-		return plugin.Error("filter", err)
+		return plugin.Error(pluginName, err)
 	}
 
 	c.OnStartup(func() error {
-		metrics.MustRegister(c, BlockCount)
+		metrics.MustRegister(c, RequestsBlockedCount)
 		return f.OnStartup()
 	})
 
