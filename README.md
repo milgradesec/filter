@@ -32,26 +32,3 @@ If monitoring is enabled (via the *prometheus* plugin) then the following metric
     forward . 1.1.1.1
 }
 ~~~
-
-## Building
-
-~~~ cmd
-$ git clone https://github.com/coredns/coredns
-$ cd coredns
-~~~
-
-Then modify plugin.cfg.
-
-~~~ txt
-...
-cache:cache
-filter:github.com/milgradesec/filter
-forward:forward
-...
-~~~
-
-And build coredns as usual.
-
-~~~ cmd
-$ go generate && go build
-~~~
