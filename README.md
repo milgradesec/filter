@@ -1,10 +1,16 @@
-# Filter plugin
+# filter
 
 [![Build Status](https://travis-ci.org/milgradesec/filter.svg?branch=master)](https://travis-ci.org/milgradesec/filter)
 [![codecov](https://codecov.io/gh/milgradesec/filter/branch/master/graph/badge.svg)](https://codecov.io/gh/milgradesec/filter)
 [![Go Report Card](https://goreportcard.com/badge/github.com/milgradesec/filter)](https://goreportcard.com/report/github.com/milgradesec/filter)
 
-CoreDNS plugin that blocks requests based on lists and rules
+## Name
+
+*filter* - enables blocking requests based on lists and rules.
+
+## Description
+
+## Syntax
 
 ## Features
 
@@ -12,7 +18,13 @@ CoreDNS plugin that blocks requests based on lists and rules
 * Detects CNAME cloacking
 * Responses allow negative caching
 
-## Usage
+## Metrics
+
+If monitoring is enabled (via the *prometheus* plugin) then the following metric are exported:
+
+* `coredns_filter_blocked_requests_total{server}` - count per server
+
+## Examples
 
 ~~~ corefile
 .:53 {
@@ -27,7 +39,7 @@ CoreDNS plugin that blocks requests based on lists and rules
 
 ## Building
 
-~~~
+~~~ cmd
 $ git clone https://github.com/coredns/coredns
 $ cd coredns
 ~~~
@@ -44,6 +56,6 @@ forward:forward
 
 And build coredns as usual.
 
-~~~
+~~~ cmd
 $ go generate && go build
 ~~~
