@@ -1,5 +1,8 @@
 # filter
 
+[![Build Status](https://img.shields.io/travis/milgradesec/filter/master.svg?label=build)](https://travis-ci.org/milgradesec/filter)
+[![Go Report Card](https://goreportcard.com/badge/milgradesec/filter)](https://goreportcard.com/badge/github.com/milgradesec/filter)
+
 ## Name
 
 *filter* - enables blocking requests based on lists and rules.
