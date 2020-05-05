@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	RequestsBlockedCount = prometheus.NewCounterVec(prometheus.CounterOpts{
+	blockCount = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: plugin.Namespace,
 		Subsystem: pluginName,
 		Name:      "blocked_requests_total",

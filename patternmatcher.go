@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type PatternMatcher struct {
+type patternMatcher struct {
 	hashtable  map[string]struct{}
 	prefixes   []string
 	suffixes   []string
@@ -16,8 +16,8 @@ type PatternMatcher struct {
 	regexes    []*regexp.Regexp
 }
 
-func NewPatternMatcher() *PatternMatcher {
-	return &PatternMatcher{
+func newPatternMatcher() *patternMatcher {
+	return &patternMatcher{
 		hashtable: make(map[string]struct{}),
 	}
 }
@@ -25,7 +25,7 @@ func NewPatternMatcher() *PatternMatcher {
 var regexpRunes = []string{"[", "]", "(", ")", "|", "?",
 	"+", "$", "{", "}", "^"}
 
-func (l *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
+func (pm *patternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
 	if r == nil {
 		return 0, errors.New("invalid list source")
 	}
@@ -45,7 +45,7 @@ func (l *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
 				if err != nil {
 					return 0, err
 				}
-				l.regexes = append(l.regexes, r)
+				pm.regexes = append(pm.regexes, r)
 				break
 			}
 		}
@@ -53,18 +53,18 @@ func (l *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
 			if strings.HasSuffix(line, "*") && strings.HasPrefix(line, "*") {
 				qname := strings.TrimPrefix(line, "*")
 				qname = strings.TrimSuffix(qname, "*")
-				l.subStrings = append(l.subStrings, qname)
+				pm.subStrings = append(pm.subStrings, qname)
 			}
 			if strings.HasSuffix(scanner.Text(), "*") {
 				domain := strings.TrimSuffix(line, "*")
-				l.prefixes = append(l.prefixes, domain)
+				pm.prefixes = append(pm.prefixes, domain)
 			}
 			if strings.HasPrefix(scanner.Text(), "*") {
 				domain := strings.TrimPrefix(line, "*")
-				l.suffixes = append(l.suffixes, domain)
+				pm.suffixes = append(pm.suffixes, domain)
 			}
 		} else {
-			l.hashtable[line] = struct{}{}
+			pm.hashtable[line] = struct{}{}
 		}
 
 		if scanner.Err() != nil {
@@ -74,17 +74,17 @@ func (l *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
 	return n, nil
 }
 
-func (l *PatternMatcher) Match(str string) bool {
-	_, q := l.hashtable[str]
+func (pm *patternMatcher) Match(str string) bool {
+	_, q := pm.hashtable[str]
 	if q {
 		return true
 	}
-	for _, prefix := range l.prefixes {
+	for _, prefix := range pm.prefixes {
 		if strings.HasPrefix(str, prefix) {
 			return true
 		}
 	}
-	for _, suffix := range l.suffixes {
+	for _, suffix := range pm.suffixes {
 		if strings.HasSuffix(str, suffix) {
 			return true
 		}
@@ -92,12 +92,12 @@ func (l *PatternMatcher) Match(str string) bool {
 			return true
 		}
 	}
-	for _, substr := range l.subStrings {
+	for _, substr := range pm.subStrings {
 		if strings.Contains(str, substr) {
 			return true
 		}
 	}
-	for _, regex := range l.regexes {
+	for _, regex := range pm.regexes {
 		if regex.MatchString(str) {
 			return true
 		}

@@ -7,8 +7,7 @@ import (
 	"github.com/miekg/dns"
 )
 
-// ResponseWriter detects and blocks cname cloaking.
-type ResponseWriter struct {
+type responseWriter struct {
 	dns.ResponseWriter
 	*Filter
 
@@ -16,7 +15,7 @@ type ResponseWriter struct {
 }
 
 // WriteMsg implements dns.ResponseWriter.
-func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
+func (w *responseWriter) WriteMsg(m *dns.Msg) error {
 	qname := strings.TrimSuffix(w.state.Name(), ".")
 
 	if m.Rcode != dns.RcodeSuccess || w.whitelist.Match(qname) {

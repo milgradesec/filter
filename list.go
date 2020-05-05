@@ -6,12 +6,12 @@ import (
 	"strings"
 )
 
-type List struct {
+type list struct {
 	Path  string
 	Block bool
 }
 
-func (l *List) Open() (src io.ReadCloser, err error) {
+func (l *list) Open() (src io.ReadCloser, err error) {
 	if strings.HasPrefix(l.Path, ".") {
 		cwd, err := os.Getwd()
 		if err != nil {

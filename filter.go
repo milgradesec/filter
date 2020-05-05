@@ -13,13 +13,13 @@ import (
 // Filter represents a plugin instance that can filter and block requests based
 // on predefined lists.
 type Filter struct {
-	Lists []*List
-
-	whitelist *PatternMatcher
-	blacklist *PatternMatcher
-	uncloak   bool // Perform CNAME uncloaking.
-
 	Next plugin.Handler
+
+	Lists []*list
+
+	whitelist    *patternMatcher
+	blacklist    *patternMatcher
+	cnameUncloak bool
 }
 
 // Name implements plugin.Handler.
@@ -31,12 +31,12 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	qname := strings.TrimSuffix(state.Name(), ".")
 
 	if f.Match(qname) {
-		RequestsBlockedCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
+		blockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
 		return writeNXdomain(w, r)
 	}
 
-	if f.uncloak {
-		rw := &ResponseWriter{
+	if f.cnameUncloak {
+		rw := &responseWriter{
 			ResponseWriter: w,
 			Filter:         f,
 			state:          state,
@@ -62,8 +62,8 @@ func (f *Filter) OnStartup() error { return f.Load() }
 
 // Load loads the lists from disk.
 func (f *Filter) Load() error {
-	whitelist := NewPatternMatcher()
-	blocklist := NewPatternMatcher()
+	whitelist := newPatternMatcher()
+	blocklist := newPatternMatcher()
 
 	for _, list := range f.Lists {
 		rc, err := list.Open()

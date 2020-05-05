@@ -20,7 +20,7 @@ func setup(c *caddy.Controller) error {
 	}
 
 	c.OnStartup(func() error {
-		metrics.MustRegister(c, RequestsBlockedCount)
+		metrics.MustRegister(c, blockCount)
 		return f.OnStartup()
 	})
 
@@ -29,6 +29,31 @@ func setup(c *caddy.Controller) error {
 		return f
 	})
 
+	return nil
+}
+
+func parseBlock(c *caddy.Controller, f *Filter) error {
+	switch c.Val() {
+	case "allow":
+		if !c.NextArg() {
+			return c.ArgErr()
+		}
+		l := &list{Path: c.Val(), Block: false}
+		f.Lists = append(f.Lists, l)
+
+	case "block":
+		if !c.NextArg() {
+			return c.ArgErr()
+		}
+		l := &list{Path: c.Val(), Block: true}
+		f.Lists = append(f.Lists, l)
+
+	case "uncloak":
+		f.cnameUncloak = true
+
+	default:
+		return c.Errf("unknown setting '%s' ", c.Val())
+	}
 	return nil
 }
 
@@ -46,29 +71,4 @@ func parseConfig(c *caddy.Controller) (*Filter, error) {
 		return nil, c.ArgErr()
 	}
 	return f, nil
-}
-
-func parseBlock(c *caddy.Controller, f *Filter) error {
-	switch c.Val() {
-	case "allow":
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		l := &List{Path: c.Val(), Block: false}
-		f.Lists = append(f.Lists, l)
-
-	case "block":
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		l := &List{Path: c.Val(), Block: true}
-		f.Lists = append(f.Lists, l)
-
-	case "uncloak":
-		f.uncloak = true
-
-	default:
-		return c.Errf("unknown setting '%s' ", c.Val())
-	}
-	return nil
 }
