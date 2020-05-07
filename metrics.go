@@ -6,10 +6,10 @@ import (
 )
 
 var (
-	blockCount = prometheus.NewCounterVec(prometheus.CounterOpts{
+	BlockCount = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: plugin.Namespace,
 		Subsystem: pluginName,
 		Name:      "blocked_requests_total",
-		Help:      "The total count of blocked requests.",
+		Help:      "Counter of blocked requests.",
 	}, []string{"server"})
 )

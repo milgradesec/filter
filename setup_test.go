@@ -11,10 +11,9 @@ func TestSetup(t *testing.T) {
 		input   string
 		wantErr bool
 	}{
-		{`filter`, true},
-		{`filter more`, true},
-		{`filter {
-			more
+		{`filter {}`, false},
+		{`filter { 
+			strange options
 			}`, true},
 		{`filter {
 			block url more
@@ -27,14 +26,14 @@ func TestSetup(t *testing.T) {
 		{`filter {
 			allow ./testdata/whitelist.txt
 			block ./testdata/blacklist.txt
-			uncloak
+			uncloak_cname
 		}`, false},
 	}
 
 	for i, test := range tests {
 		c := caddy.NewTestController("dns", test.input)
-		err := setup(c)
 
+		err := setup(c)
 		if test.wantErr && err == nil {
 			t.Errorf("Test %d: expected error but found %s for input %s", i, err, test.input)
 		}

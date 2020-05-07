@@ -13,17 +13,18 @@ import (
 // Filter represents a plugin instance that can filter and block requests based
 // on predefined lists.
 type Filter struct {
-	Next plugin.Handler
-
+	Next  plugin.Handler
 	Lists []*list
 
 	whitelist    *patternMatcher
 	blacklist    *patternMatcher
-	cnameUncloak bool
+	uncloakCname bool
 }
 
 // Name implements plugin.Handler.
-func (f *Filter) Name() string { return "filter" }
+func (f *Filter) Name() string {
+	return "filter"
+}
 
 // ServeDNS implements plugin.Handler.
 func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
@@ -31,11 +32,11 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	qname := strings.TrimSuffix(state.Name(), ".")
 
 	if f.Match(qname) {
-		blockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
+		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
 		return writeNXdomain(w, r)
 	}
 
-	if f.cnameUncloak {
+	if f.uncloakCname {
 		rw := &responseWriter{
 			ResponseWriter: w,
 			Filter:         f,
@@ -57,16 +58,13 @@ func (f *Filter) Match(qname string) bool {
 	return false
 }
 
-// OnStartup loads lists at plugin startup.
-func (f *Filter) OnStartup() error { return f.Load() }
-
 // Load loads the lists from disk.
 func (f *Filter) Load() error {
 	whitelist := newPatternMatcher()
 	blocklist := newPatternMatcher()
 
 	for _, list := range f.Lists {
-		rc, err := list.Open()
+		rc, err := list.Read()
 		if err != nil {
 			return err
 		}

@@ -18,7 +18,7 @@ func Test_ServeDNS(t *testing.T) {
 		block ./tests/data/blocklist.txt
 	}`)
 
-	f, err := parseConfig(c)
+	f, err := parseFilter(c)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -18,7 +18,7 @@ func TestFilter_Load(t *testing.T) {
 	}
 	for _, tt := range tests {
 		c := caddy.NewTestController("dns", tt.input)
-		f, err := parseConfig(c)
+		f, err := parseFilter(c)
 		if err != nil {
 			t.Fatal(err)
 		}
