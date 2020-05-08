@@ -16,9 +16,9 @@ type responseWriter struct {
 
 // WriteMsg implements dns.ResponseWriter.
 func (w *responseWriter) WriteMsg(m *dns.Msg) error {
-	qname := strings.TrimSuffix(w.state.Name(), ".")
+	name := strings.TrimSuffix(w.state.Name(), ".")
 
-	if m.Rcode != dns.RcodeSuccess || w.whitelist.Match(qname) {
+	if m.Rcode != dns.RcodeSuccess || w.whitelist.Match(name) {
 		return w.ResponseWriter.WriteMsg(m)
 	}
 

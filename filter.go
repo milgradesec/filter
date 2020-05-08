@@ -11,14 +11,21 @@ import (
 )
 
 // Filter represents a plugin instance that can filter and block requests based
-// on predefined lists.
+// on predefined lists and regex rules.
 type Filter struct {
 	Next  plugin.Handler
 	Lists []*list
 
-	whitelist    *patternMatcher
-	blacklist    *patternMatcher
+	whitelist    *PatternMatcher
+	blacklist    *PatternMatcher
 	uncloakCname bool
+}
+
+func New() *Filter {
+	return &Filter{
+		whitelist: NewPatternMatcher(),
+		blacklist: NewPatternMatcher(),
+	}
 }
 
 // Name implements plugin.Handler.
@@ -47,40 +54,37 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
 }
 
-// Match determines if the requested domain should be blocked.
-func (f *Filter) Match(qname string) bool {
-	if f.whitelist.Match(qname) {
+func (f *Filter) OnStartup() error {
+	return f.Load()
+}
+
+func (f *Filter) Match(name string) bool {
+	if f.whitelist.Match(name) {
 		return false
 	}
-	if f.blacklist.Match(qname) {
+	if f.blacklist.Match(name) {
 		return true
 	}
 	return false
 }
 
-// Load loads the lists from disk.
 func (f *Filter) Load() error {
-	whitelist := newPatternMatcher()
-	blocklist := newPatternMatcher()
-
 	for _, list := range f.Lists {
 		rc, err := list.Read()
 		if err != nil {
 			return err
 		}
 		if list.Block {
-			if _, err := blocklist.ReadFrom(rc); err != nil {
+			if _, err := f.blacklist.ReadFrom(rc); err != nil {
 				return err
 			}
 		} else {
-			if _, err := whitelist.ReadFrom(rc); err != nil {
+			if _, err := f.whitelist.ReadFrom(rc); err != nil {
 				return err
 			}
 		}
 		rc.Close()
 	}
 
-	f.whitelist = whitelist
-	f.blacklist = blocklist
 	return nil
 }

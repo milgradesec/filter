@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"errors"
 	"io"
+	"os"
 	"regexp"
 	"strings"
 )
 
-type patternMatcher struct {
+type PatternMatcher struct {
 	hashtable  map[string]struct{}
 	prefixes   []string
 	suffixes   []string
@@ -16,8 +17,8 @@ type patternMatcher struct {
 	regexes    []*regexp.Regexp
 }
 
-func newPatternMatcher() *patternMatcher {
-	return &patternMatcher{
+func NewPatternMatcher() *PatternMatcher {
+	return &PatternMatcher{
 		hashtable: make(map[string]struct{}),
 	}
 }
@@ -25,7 +26,7 @@ func newPatternMatcher() *patternMatcher {
 var regexpRunes = []string{"[", "]", "(", ")", "|", "?",
 	"+", "$", "{", "}", "^"}
 
-func (pm *patternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
+func (pm *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
 	if r == nil {
 		return 0, errors.New("invalid list source")
 	}
@@ -74,7 +75,7 @@ func (pm *patternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
 	return n, nil
 }
 
-func (pm *patternMatcher) Match(str string) bool {
+func (pm *PatternMatcher) Match(str string) bool {
 	_, q := pm.hashtable[str]
 	if q {
 		return true
@@ -103,4 +104,17 @@ func (pm *patternMatcher) Match(str string) bool {
 		}
 	}
 	return false
+}
+
+type list struct {
+	Path  string
+	Block bool
+}
+
+func (l *list) Read() (src io.ReadCloser, err error) {
+	f, err := os.Open(l.Path)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
 }

@@ -32,13 +32,8 @@ func setup(c *caddy.Controller) error {
 	return nil
 }
 
-// OnStartup loads lists at plugin startup.
-func (f *Filter) OnStartup() error {
-	return f.Load()
-}
-
 func parseFilter(c *caddy.Controller) (*Filter, error) {
-	var f = &Filter{}
+	f := New()
 
 	for c.Next() {
 		for c.NextBlock() {
