@@ -13,10 +13,9 @@ import (
 // Filter represents a plugin instance that can filter and block requests based
 // on predefined lists and regex rules.
 type Filter struct {
-	lists []*list
-
-	whitelist    *PatternMatcher
-	blacklist    *PatternMatcher
+	sources      []source
+	whitelist    *dnsFilter
+	blacklist    *dnsFilter
 	uncloakCname bool
 
 	Next plugin.Handler
@@ -24,43 +23,38 @@ type Filter struct {
 
 func New() *Filter {
 	return &Filter{
-		whitelist: NewPatternMatcher(),
-		blacklist: NewPatternMatcher(),
+		whitelist: newDnsFilter(),
+		blacklist: newDnsFilter(),
 	}
-}
-
-// Name implements the plugin.Handler interface.
-func (f *Filter) Name() string {
-	return "filter"
 }
 
 // ServeDNS implements the plugin.Handler interface.
 func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
-	name := strings.TrimSuffix(state.Name(), ".")
 
-	if f.Match(name) {
+	if f.Match(state.Name()) {
 		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
 
 		m := new(dns.Msg)
+		m.SetReply(r)
 		m.SetRcode(r, dns.RcodeNameError)
-		m.Authoritative, m.RecursionAvailable = true, true
 		m.Ns = genSOA(r)
 
 		w.WriteMsg(m)
 		return dns.RcodeNameError, nil
 	}
 
-	/*if f.uncloakCname {
-		rw := &responseWriter{
-			ResponseWriter: w,
-			Filter:         f,
-			state:          state,
-		}
-		return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
-	}*/
+	if f.uncloakCname {
+		fw := &ResponseWriter{ResponseWriter: w, state: state, Filter: f}
+		return plugin.NextOrFailure(f.Name(), f.Next, ctx, fw, r)
+	}
 
 	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
+}
+
+// Name implements the plugin.Handler interface.
+func (f *Filter) Name() string {
+	return "filter"
 }
 
 func (f *Filter) OnStartup() error {
@@ -78,7 +72,7 @@ func (f *Filter) Match(name string) bool {
 }
 
 func (f *Filter) Load() error {
-	for _, list := range f.lists {
+	for _, list := range f.sources {
 		rc, err := list.Read()
 		if err != nil {
 			return err
@@ -96,4 +90,49 @@ func (f *Filter) Load() error {
 	}
 
 	return nil
+}
+
+// ResponseWriter is a response writer that performs CNAME uncloaking.
+type ResponseWriter struct {
+	dns.ResponseWriter
+	*Filter
+
+	state request.Request
+}
+
+// WriteMsg implements the dns.ResponseWriter interface.
+func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
+	if m.Rcode != dns.RcodeSuccess {
+		return w.ResponseWriter.WriteMsg(m)
+	}
+
+	if w.whitelist.Match(w.state.Name()) {
+		return w.ResponseWriter.WriteMsg(m)
+	}
+
+	for _, r := range m.Answer {
+		hdr := r.Header()
+		if hdr.Class != dns.ClassINET || hdr.Rrtype != dns.TypeCNAME {
+			continue
+		}
+
+		cname := strings.TrimSuffix(r.(*dns.CNAME).Target, ".")
+		if w.Match(cname) {
+			m := new(dns.Msg)
+			r := w.state.Req
+
+			m.SetReply(r)
+			m.SetRcode(r, dns.RcodeNameError)
+			m.Ns = genSOA(r)
+
+			w.WriteMsg(m)
+			return nil
+		}
+	}
+	return w.ResponseWriter.WriteMsg(m)
+}
+
+// Write implements the dns.ResponseWriter interface.
+func (w *ResponseWriter) Write(buf []byte) (int, error) {
+	return w.ResponseWriter.Write(buf)
 }

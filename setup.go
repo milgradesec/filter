@@ -53,22 +53,16 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 			return c.ArgErr()
 		}
 
-		l := &list{
-			Path:  c.Val(),
-			Block: false,
-		}
-		f.lists = append(f.lists, l)
+		l := source{Path: c.Val(), Block: false}
+		f.sources = append(f.sources, l)
 
 	case "block":
 		if !c.NextArg() {
 			return c.ArgErr()
 		}
 
-		l := &list{
-			Path:  c.Val(),
-			Block: true,
-		}
-		f.lists = append(f.lists, l)
+		l := source{Path: c.Val(), Block: true}
+		f.sources = append(f.sources, l)
 
 	case "exclude":
 		if c.NextArg() {

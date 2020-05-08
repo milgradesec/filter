@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type PatternMatcher struct {
+type dnsFilter struct {
 	hashtable  map[string]struct{}
 	prefixes   []string
 	suffixes   []string
@@ -17,8 +17,8 @@ type PatternMatcher struct {
 	regexes    []*regexp.Regexp
 }
 
-func NewPatternMatcher() *PatternMatcher {
-	return &PatternMatcher{
+func newDnsFilter() *dnsFilter {
+	return &dnsFilter{
 		hashtable: make(map[string]struct{}),
 	}
 }
@@ -26,7 +26,7 @@ func NewPatternMatcher() *PatternMatcher {
 var regexpRunes = []string{"[", "]", "(", ")", "|", "?",
 	"+", "$", "{", "}", "^"}
 
-func (pm *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
+func (f *dnsFilter) ReadFrom(r io.Reader) (n int64, err error) {
 	if r == nil {
 		return 0, errors.New("invalid list source")
 	}
@@ -46,7 +46,7 @@ func (pm *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
 				if err != nil {
 					return 0, err
 				}
-				pm.regexes = append(pm.regexes, r)
+				f.regexes = append(f.regexes, r)
 				break
 			}
 		}
@@ -54,18 +54,18 @@ func (pm *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
 			if strings.HasSuffix(line, "*") && strings.HasPrefix(line, "*") {
 				qname := strings.TrimPrefix(line, "*")
 				qname = strings.TrimSuffix(qname, "*")
-				pm.subStrings = append(pm.subStrings, qname)
+				f.subStrings = append(f.subStrings, qname)
 			}
 			if strings.HasSuffix(scanner.Text(), "*") {
 				domain := strings.TrimSuffix(line, "*")
-				pm.prefixes = append(pm.prefixes, domain)
+				f.prefixes = append(f.prefixes, domain)
 			}
 			if strings.HasPrefix(scanner.Text(), "*") {
 				domain := strings.TrimPrefix(line, "*")
-				pm.suffixes = append(pm.suffixes, domain)
+				f.suffixes = append(f.suffixes, domain)
 			}
 		} else {
-			pm.hashtable[line] = struct{}{}
+			f.hashtable[line] = struct{}{}
 		}
 
 		if scanner.Err() != nil {
@@ -75,44 +75,46 @@ func (pm *PatternMatcher) ReadFrom(r io.Reader) (n int64, err error) {
 	return n, nil
 }
 
-func (pm *PatternMatcher) Match(str string) bool {
-	_, q := pm.hashtable[str]
+func (f *dnsFilter) Match(name string) bool {
+	name = strings.TrimSuffix(name, ".")
+
+	_, q := f.hashtable[name]
 	if q {
 		return true
 	}
-	for _, prefix := range pm.prefixes {
-		if strings.HasPrefix(str, prefix) {
+	for _, prefix := range f.prefixes {
+		if strings.HasPrefix(name, prefix) {
 			return true
 		}
 	}
-	for _, suffix := range pm.suffixes {
-		if strings.HasSuffix(str, suffix) {
+	for _, suffix := range f.suffixes {
+		if strings.HasSuffix(name, suffix) {
 			return true
 		}
-		if str == strings.TrimPrefix(suffix, ".") {
-			return true
-		}
-	}
-	for _, substr := range pm.subStrings {
-		if strings.Contains(str, substr) {
+		if name == strings.TrimPrefix(suffix, ".") {
 			return true
 		}
 	}
-	for _, regex := range pm.regexes {
-		if regex.MatchString(str) {
+	for _, substr := range f.subStrings {
+		if strings.Contains(name, substr) {
+			return true
+		}
+	}
+	for _, regex := range f.regexes {
+		if regex.MatchString(name) {
 			return true
 		}
 	}
 	return false
 }
 
-type list struct {
+type source struct {
 	Path  string
 	Block bool
 }
 
-func (l *list) Read() (src io.ReadCloser, err error) {
-	f, err := os.Open(l.Path)
+func (s *source) Read() (src io.ReadCloser, err error) {
+	f, err := os.Open(s.Path)
 	if err != nil {
 		return nil, err
 	}

@@ -6,16 +6,16 @@ import (
 
 func genSOA(r *dns.Msg) []dns.RR {
 	zone := r.Question[0].Name
+	mbox := "hostmaster."
+	if zone[0] != '.' {
+		mbox += zone
+	}
+
 	hdr := dns.RR_Header{
 		Name:   zone,
 		Rrtype: dns.TypeSOA,
 		Ttl:    600,
 		Class:  dns.ClassINET,
-	}
-
-	mbox := "hostmaster."
-	if zone[0] != '.' {
-		mbox += zone
 	}
 
 	soa := dns.SOA{
