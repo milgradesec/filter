@@ -18,8 +18,7 @@ type Filter struct {
 	// Enables CNAME uncloaking of replies.
 	UncloakCname bool
 
-	sources []source
-
+	sources   []source
 	whitelist *dnsFilter
 	blacklist *dnsFilter
 }

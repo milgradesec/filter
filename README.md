@@ -13,9 +13,9 @@
 
 ## Features
 
-* Regex and simple string matching
-* Detects CNAME cloacking
-* Responses allow negative caching
+* Regex and simple string matching.
+* Detects CNAME cloacking.
+* Responses compatible with negative caching.
 
 ## Metrics
 
