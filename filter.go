@@ -13,12 +13,15 @@ import (
 // Filter represents a plugin instance that can filter and block requests based
 // on predefined lists and regex rules.
 type Filter struct {
-	sources      []source
-	whitelist    *dnsFilter
-	blacklist    *dnsFilter
-	uncloakCname bool
-
 	Next plugin.Handler
+
+	// Enables CNAME uncloaking of replies.
+	UncloakCname bool
+
+	sources []source
+
+	whitelist *dnsFilter
+	blacklist *dnsFilter
 }
 
 func New() *Filter {
@@ -31,9 +34,10 @@ func New() *Filter {
 // ServeDNS implements the plugin.Handler interface.
 func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
+	server := metrics.WithServer(ctx)
 
 	if f.Match(state.Name()) {
-		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
+		BlockCount.WithLabelValues(server).Inc()
 
 		m := new(dns.Msg)
 		m.SetReply(r)
@@ -44,8 +48,8 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		return dns.RcodeNameError, nil
 	}
 
-	if f.uncloakCname {
-		fw := &ResponseWriter{ResponseWriter: w, state: state, Filter: f}
+	if f.UncloakCname {
+		fw := &ResponseWriter{ResponseWriter: w, state: state, server: server, Filter: f}
 		return plugin.NextOrFailure(f.Name(), f.Next, ctx, fw, r)
 	}
 
@@ -97,7 +101,8 @@ type ResponseWriter struct {
 	dns.ResponseWriter
 	*Filter
 
-	state request.Request
+	state  request.Request
+	server string
 }
 
 // WriteMsg implements the dns.ResponseWriter interface.
@@ -118,9 +123,10 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 
 		cname := strings.TrimSuffix(r.(*dns.CNAME).Target, ".")
 		if w.Match(cname) {
+			BlockCount.WithLabelValues(w.server).Inc()
+
 			m := new(dns.Msg)
 			r := w.state.Req
-
 			m.SetReply(r)
 			m.SetRcode(r, dns.RcodeNameError)
 			m.Ns = genSOA(r)
@@ -134,5 +140,6 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 
 // Write implements the dns.ResponseWriter interface.
 func (w *ResponseWriter) Write(buf []byte) (int, error) {
+	// log ?
 	return w.ResponseWriter.Write(buf)
 }
