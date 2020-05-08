@@ -14,7 +14,7 @@ type responseWriter struct {
 	state request.Request
 }
 
-// WriteMsg implements dns.ResponseWriter.
+// WriteMsg implements the dns.ResponseWriter interface.
 func (w *responseWriter) WriteMsg(m *dns.Msg) error {
 	name := strings.TrimSuffix(w.state.Name(), ".")
 
@@ -30,9 +30,9 @@ func (w *responseWriter) WriteMsg(m *dns.Msg) error {
 
 		cname := strings.TrimSuffix(r.(*dns.CNAME).Target, ".")
 		if w.Match(cname) {
-			if _, err := writeNXdomain(w, w.state.Req); err != nil {
+			/*if _, err := writeNXdomain(w, w.state.Req); err != nil {
 				return err
-			}
+			}*/
 			return nil
 		}
 	}

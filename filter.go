@@ -13,12 +13,13 @@ import (
 // Filter represents a plugin instance that can filter and block requests based
 // on predefined lists and regex rules.
 type Filter struct {
-	Next  plugin.Handler
-	Lists []*list
+	lists []*list
 
 	whitelist    *PatternMatcher
 	blacklist    *PatternMatcher
 	uncloakCname bool
+
+	Next plugin.Handler
 }
 
 func New() *Filter {
@@ -28,29 +29,37 @@ func New() *Filter {
 	}
 }
 
-// Name implements plugin.Handler.
+// Name implements the plugin.Handler interface.
 func (f *Filter) Name() string {
 	return "filter"
 }
 
-// ServeDNS implements plugin.Handler.
+// ServeDNS implements the plugin.Handler interface.
 func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
-	qname := strings.TrimSuffix(state.Name(), ".")
+	name := strings.TrimSuffix(state.Name(), ".")
 
-	if f.Match(qname) {
+	if f.Match(name) {
 		BlockCount.WithLabelValues(metrics.WithServer(ctx)).Inc()
-		return writeNXdomain(w, r)
+
+		m := new(dns.Msg)
+		m.SetRcode(r, dns.RcodeNameError)
+		m.Authoritative, m.RecursionAvailable = true, true
+		m.Ns = genSOA(r)
+
+		w.WriteMsg(m)
+		return dns.RcodeNameError, nil
 	}
 
-	if f.uncloakCname {
+	/*if f.uncloakCname {
 		rw := &responseWriter{
 			ResponseWriter: w,
 			Filter:         f,
 			state:          state,
 		}
 		return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
-	}
+	}*/
+
 	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
 }
 
@@ -69,7 +78,7 @@ func (f *Filter) Match(name string) bool {
 }
 
 func (f *Filter) Load() error {
-	for _, list := range f.Lists {
+	for _, list := range f.lists {
 		rc, err := list.Read()
 		if err != nil {
 			return err

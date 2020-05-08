@@ -57,7 +57,7 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 			Path:  c.Val(),
 			Block: false,
 		}
-		f.Lists = append(f.Lists, l)
+		f.lists = append(f.lists, l)
 
 	case "block":
 		if !c.NextArg() {
@@ -68,7 +68,7 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 			Path:  c.Val(),
 			Block: true,
 		}
-		f.Lists = append(f.Lists, l)
+		f.lists = append(f.lists, l)
 
 	case "exclude":
 		if c.NextArg() {
