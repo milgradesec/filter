@@ -9,6 +9,7 @@ import (
 
 const pluginName = "filter"
 
+//nolint
 func init() {
 	plugin.Register(pluginName, setup)
 }

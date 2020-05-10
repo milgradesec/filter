@@ -25,8 +25,8 @@ type Filter struct {
 
 func New() *Filter {
 	return &Filter{
-		whitelist: newDnsFilter(),
-		blacklist: newDnsFilter(),
+		whitelist: newDNSFilter(),
+		blacklist: newDNSFilter(),
 	}
 }
 
@@ -124,13 +124,13 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 		if w.Match(cname) {
 			BlockCount.WithLabelValues(w.server).Inc()
 
-			m := new(dns.Msg)
+			msg := new(dns.Msg)
 			r := w.state.Req
-			m.SetReply(r)
-			m.SetRcode(r, dns.RcodeNameError)
-			m.Ns = genSOA(r)
+			msg.SetReply(r)
+			msg.SetRcode(r, dns.RcodeNameError)
+			msg.Ns = genSOA(r)
 
-			w.WriteMsg(m)
+			w.WriteMsg(msg)
 			return nil
 		}
 	}

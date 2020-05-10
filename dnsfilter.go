@@ -17,7 +17,7 @@ type dnsFilter struct {
 	regexes    []*regexp.Regexp
 }
 
-func newDnsFilter() *dnsFilter {
+func newDNSFilter() *dnsFilter {
 	return &dnsFilter{
 		hashtable: make(map[string]struct{}),
 	}
