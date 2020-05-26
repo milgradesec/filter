@@ -5,7 +5,7 @@
 
 ## Name
 
-*filter* - enables blocking requests based on lists and rules.
+_filter_ - enables blocking requests based on lists and rules.
 
 ## Description
 
@@ -13,19 +13,19 @@
 
 ## Features
 
-* Regex and simple string matching.
-* Detects CNAME cloacking.
-* Responses compatible with negative caching.
+- Regex and simple string matching.
+- Detects CNAME cloacking.
+- Responses compatible with negative caching.
 
 ## Metrics
 
-If monitoring is enabled (via the *prometheus* plugin) then the following metric are exported:
+If monitoring is enabled (via the _prometheus_ plugin) then the following metric are exported:
 
-* `coredns_filter_blocked_requests_total{server}` - count per server
+- `coredns_filter_blocked_requests_total{server}` - count per server
 
 ## Examples
 
-~~~ corefile
+```corefile
 .:53 {
     filter {
         allow ./lists/whitelist.txt
@@ -34,4 +34,4 @@ If monitoring is enabled (via the *prometheus* plugin) then the following metric
     }
     forward . 1.1.1.1
 }
-~~~
+```
