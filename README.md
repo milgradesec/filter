@@ -3,19 +3,29 @@
 [![Build Status](https://img.shields.io/travis/milgradesec/filter/master.svg?label=build)](https://travis-ci.org/milgradesec/filter)
 [![Go Report Card](https://goreportcard.com/badge/milgradesec/filter)](https://goreportcard.com/badge/github.com/milgradesec/filter)
 
-## Name
-
-_filter_ - enables blocking requests based on lists and rules.
-
 ## Description
 
-## Syntax
+The _filter_ plugins enables blocking requests based on predefined lists and rules, creating a DNS sinkhole similar to Pi-Hole.
 
 ## Features
 
-- Regex and simple string matching.
-- Detects CNAME cloacking.
-- Responses compatible with negative caching.
+- Regex and simple string matching support.
+- CNAME inspection detects and blocks cloaking.
+- Block replies are fully cacheable by the _cache_ plugin.
+
+## Syntax
+
+```corefile
+filter {
+    allow FILE
+    block FILE
+    uncloak
+}
+```
+
+- `allow` load **FILE** to the whitelist.
+- `block` load **FILE** to the blacklist.
+- `uncloak` enables cname uncloaking.
 
 ## Metrics
 
