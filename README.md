@@ -1,7 +1,8 @@
 # filter
 
-[![Build Status](https://img.shields.io/travis/milgradesec/filter/master.svg?label=build)](https://travis-ci.org/milgradesec/filter)
+![CI](https://github.com/milgradesec/filter/workflows/CI/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/milgradesec/filter)](https://goreportcard.com/badge/github.com/milgradesec/filter)
+[![Code Coverage](https://img.shields.io/codecov/c/github/milgradesec/filter/master.svg)](https://codecov.io/github/milgradesec/filter?branch=master)
 
 ## Description
 

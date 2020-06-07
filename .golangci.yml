@@ -64,12 +64,9 @@ linters:
     - dupl
     - errcheck
     - funlen
-    - gochecknoinits
     - goconst
     - gocritic
     - gocyclo
-    #    - gofmt
-    #    - goimports
     - golint
     - gomnd
     - goprintffuncname
@@ -93,19 +90,10 @@ linters:
     - unused
     - varcheck
     - whitespace
-
-  # don't enable:
-  # - asciicheck
-  # - gochecknoglobals
-  # - gocognit
-  # - godot
-  # - godox
-  # - goerr113
-  # - maligned
-  # - nestif
-  # - prealloc
-  # - testpackage
-  # - wsl
+    - godot
+    - godox
+    - maligned
+    - prealloc
 
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
@@ -113,10 +101,3 @@ issues:
     - path: _test\.go
       linters:
         - gomnd
-
-run:
-  skip-dirs:
-    - test/testdata_etc
-    - internal/cache
-    - internal/renameio
-    - internal/robustio
