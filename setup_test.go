@@ -13,15 +13,7 @@ func TestSetup(t *testing.T) {
 	}{
 		{`filter {}`, false},
 		{`filter { 
-			strange options
-			}`, true},
-		{`filter {
-			block url more
-			allow path more
-			}`, true},
-		{`filter {
-			block 
-			allow
+			invalid
 			}`, true},
 		{`filter {
 			allow ./testdata/whitelist.txt

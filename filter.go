@@ -2,6 +2,7 @@ package filter
 
 import (
 	"context"
+	"net"
 	"strings"
 
 	"github.com/coredns/coredns/plugin"
@@ -34,17 +35,47 @@ func New() *Filter {
 func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
 	server := metrics.WithServer(ctx)
+	qname := state.Name()
+	answers := []dns.RR{}
 
-	if f.Match(state.Name()) {
+	if f.Match(qname) {
 		BlockCount.WithLabelValues(server).Inc()
+
+		switch state.QType() {
+		case dns.TypeA:
+			a := new(dns.A)
+			a.Hdr = dns.RR_Header{
+				Name:   qname,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    600,
+			}
+			a.A = net.IPv4zero
+			answers = append(answers, a)
+
+		case dns.TypeAAAA:
+			a := new(dns.AAAA)
+			a.Hdr = dns.RR_Header{
+				Name:   qname,
+				Rrtype: dns.TypeAAAA,
+				Class:  dns.ClassINET,
+				Ttl:    600,
+			}
+			a.AAAA = net.IPv6zero
+			answers = append(answers, a)
+
+		default:
+			return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
+		}
 
 		m := new(dns.Msg)
 		m.SetReply(r)
-		m.SetRcode(r, dns.RcodeNameError)
-		m.Ns = genSOA(r)
+		m.SetRcode(r, dns.RcodeSuccess)
+		m.Authoritative = true
+		m.Answer = answers
 
 		w.WriteMsg(m)
-		return dns.RcodeNameError, nil
+		return dns.RcodeSuccess, nil
 	}
 
 	if f.UncloakCname {

@@ -53,9 +53,6 @@ func Test_ServeDNS(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if rcode != dns.RcodeNameError && tt.block {
-			t.Errorf("Test %d: expected NXDOMAIN but got %s", i, dns.RcodeToString[rcode])
-		}
 		if rcode != dns.RcodeSuccess && rcode != dns.RcodeNameError {
 			t.Errorf("Test %d: expected other rcode but got %s", i, dns.RcodeToString[rcode])
 		}
