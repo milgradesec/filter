@@ -16,8 +16,8 @@ func TestSetup(t *testing.T) {
 			invalid
 			}`, true},
 		{`filter {
-			allow ./testdata/whitelist.txt
-			block ./testdata/blacklist.txt
+			allow ./testdata/whitelist.list
+			block ./testdata/blacklist.list
 			uncloak_cname
 		}`, false},
 	}

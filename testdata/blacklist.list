@@ -3,7 +3,6 @@
 # Lista negra y reglas de bloqueo #
 ###################################
 
-# Expresiones regulares
 ^ad[0-9]*[_.-]
 ^ads[0-9]*[_.-]
 ^adtrack(er|ing)?[0-9]*[_.-]
@@ -17,13 +16,14 @@
 ^pixels?[_.-]
 ^track(ers?|ing)?[0-9]*[_.-]
 
-# Bloqueado todo lo que empieza por:
 adbroker.*
 advertising.*
 telemetry.*
 log.*
+oas.*
+oascentral.*
 
-# Bloqueado todo lo que acaba por:
+# Ad networks
 *.outbrain.com
 *.taboola.com
 *.smartadserver.com
@@ -155,7 +155,8 @@ wpad.*
 *.Home
 *.workgroup
 
-# Otros
+# Others
 searchads.msn.net
-tracker.ilibr.org
 events.gfe.nvidia.com
+pics.ys1pve.site
+ys1pve.site

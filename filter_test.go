@@ -13,9 +13,9 @@ import (
 
 func Test_ServeDNS(t *testing.T) {
 	c := caddy.NewTestController("dns", `filter  {
-		allow ./tests/data/whitelist.txt
-		block ./tests/data/blacklist.txt
-		block ./tests/data/blocklist.txt
+		allow ./testdata/whitelist.list
+		block ./testdata/blacklist.list
+		block ./testdata/blocklist.list
 	}`)
 
 	f, err := parseFilter(c)
