@@ -26,7 +26,7 @@ func setup(c *caddy.Controller) error {
 
 	c.OnStartup(func() error {
 		metrics.MustRegister(c, BlockCount)
-		return f.OnStartup()
+		return f.Load()
 	})
 
 	return nil
@@ -73,7 +73,7 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 		if c.NextArg() {
 			return c.ArgErr()
 		}
-		f.UncloakCname = true
+		f.uncloak = true
 
 	default:
 		return c.Errf("unknown option '%s' ", c.Val())

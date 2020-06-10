@@ -11,15 +11,17 @@ import (
 	"github.com/miekg/dns"
 )
 
+const defaultResponseTTL = 600
+
 // Filter represents a plugin instance that can filter and block requests based
 // on predefined lists and regex rules.
 type Filter struct {
 	Next plugin.Handler
 
-	// Enables CNAME uncloaking of replies.
-	UncloakCname bool
+	sources []source
+	uncloak bool
+	ttl     uint32
 
-	sources   []source
 	whitelist *dnsFilter
 	blacklist *dnsFilter
 }
@@ -28,6 +30,7 @@ func New() *Filter {
 	return &Filter{
 		whitelist: newDNSFilter(),
 		blacklist: newDNSFilter(),
+		ttl:       defaultResponseTTL,
 	}
 }
 
@@ -36,51 +39,18 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	state := request.Request{W: w, Req: r}
 	server := metrics.WithServer(ctx)
 	qname := state.Name()
-	answers := []dns.RR{}
 
 	if f.Match(qname) {
 		BlockCount.WithLabelValues(server).Inc()
 
-		switch state.QType() {
-		case dns.TypeA:
-			a := new(dns.A)
-			a.Hdr = dns.RR_Header{
-				Name:   qname,
-				Rrtype: dns.TypeA,
-				Class:  dns.ClassINET,
-				Ttl:    600,
-			}
-			a.A = net.IPv4zero
-			answers = append(answers, a)
-
-		case dns.TypeAAAA:
-			a := new(dns.AAAA)
-			a.Hdr = dns.RR_Header{
-				Name:   qname,
-				Rrtype: dns.TypeAAAA,
-				Class:  dns.ClassINET,
-				Ttl:    600,
-			}
-			a.AAAA = net.IPv6zero
-			answers = append(answers, a)
-
-		default:
-			return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
-		}
-
-		m := new(dns.Msg)
-		m.SetReply(r)
-		m.SetRcode(r, dns.RcodeSuccess)
-		m.Authoritative = true
-		m.Answer = answers
-
-		w.WriteMsg(m)
+		msg := createReply(r, f.ttl)
+		w.WriteMsg(msg)
 		return dns.RcodeSuccess, nil
 	}
 
-	if f.UncloakCname {
-		fw := &ResponseWriter{ResponseWriter: w, state: state, server: server, Filter: f}
-		return plugin.NextOrFailure(f.Name(), f.Next, ctx, fw, r)
+	if f.uncloak {
+		rw := &ResponseWriter{ResponseWriter: w, state: state, server: server, Filter: f}
+		return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
 	}
 
 	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
@@ -89,10 +59,6 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 // Name implements the plugin.Handler interface.
 func (f *Filter) Name() string {
 	return "filter"
-}
-
-func (f *Filter) OnStartup() error {
-	return f.Load()
 }
 
 func (f *Filter) Match(name string) bool {
@@ -156,10 +122,7 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 			BlockCount.WithLabelValues(w.server).Inc()
 
 			r := w.state.Req
-			msg := new(dns.Msg)
-			msg.SetReply(r)
-			msg.SetRcode(r, dns.RcodeNameError)
-
+			msg := createReply(r, w.ttl)
 			w.WriteMsg(msg)
 			return nil
 		}
@@ -171,4 +134,36 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 func (w *ResponseWriter) Write(buf []byte) (int, error) {
 	// log ?
 	return w.ResponseWriter.Write(buf)
+}
+
+func createReply(r *dns.Msg, ttl uint32) *dns.Msg {
+	state := request.Request{Req: r}
+	qname := state.Name()
+	answers := []dns.RR{}
+
+	switch state.QType() {
+	case dns.TypeA:
+		a := new(dns.A)
+		a.Hdr = dns.RR_Header{Name: qname, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: ttl}
+		a.A = net.IPv4zero
+		answers = append(answers, a)
+
+	case dns.TypeAAAA:
+		a := new(dns.AAAA)
+		a.Hdr = dns.RR_Header{Name: qname, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: ttl}
+		a.AAAA = net.IPv6zero
+		answers = append(answers, a)
+	default:
+		msg := new(dns.Msg)
+		msg.SetReply(r)
+		msg.SetRcode(r, dns.RcodeNameError)
+		return msg
+	}
+
+	msg := new(dns.Msg)
+	msg.SetReply(r)
+	msg.SetRcode(r, dns.RcodeSuccess)
+	msg.Authoritative = true
+	msg.Answer = answers
+	return msg
 }
