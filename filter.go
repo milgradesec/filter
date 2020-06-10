@@ -155,11 +155,10 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 		if w.Match(cname) {
 			BlockCount.WithLabelValues(w.server).Inc()
 
-			msg := new(dns.Msg)
 			r := w.state.Req
+			msg := new(dns.Msg)
 			msg.SetReply(r)
 			msg.SetRcode(r, dns.RcodeNameError)
-			msg.Ns = genSOA(r)
 
 			w.WriteMsg(msg)
 			return nil
