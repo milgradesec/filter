@@ -13,9 +13,8 @@ import (
 
 func Test_ServeDNS(t *testing.T) {
 	c := caddy.NewTestController("dns", `filter  {
-		allow ./testdata/whitelist.list
-		block ./testdata/blacklist.list
-		block ./testdata/blocklist.list
+		allow ./testdata/allowlist.list
+		block ./testdata/denylist.list
 	}`)
 
 	f, err := parseFilter(c)
@@ -34,14 +33,12 @@ func Test_ServeDNS(t *testing.T) {
 		block bool
 	}{
 		{"example.com.", false},
-		{"instagram.com.", false},
 		{"facebook.com.", false},
 		{"adservice.google.com.", true},
 		{"ads.example.com.", true},
 		{"mipcwtf.lan.", true},
 		{"taboola.com.", true},
 		{"example.taboola.com.", true},
-		{"beacons7.gvt2.com.", true},
 		{".", false},
 	}
 
