@@ -17,12 +17,6 @@ type matcher struct {
 	regexes    []*regexp.Regexp
 }
 
-/*func newMatcher() *matcher {
-	return &matcher{
-		hashtable: make(map[string]struct{}),
-	}
-}*/
-
 func (f *matcher) Match(name string) bool {
 	name = strings.TrimSuffix(name, ".")
 
