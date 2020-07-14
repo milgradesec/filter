@@ -65,7 +65,7 @@ func (f *Filter) Name() string {
 	return "filter"
 }
 
-// Match determines if the requested name should be blocked or allowed
+// Match determines if the requested name should be blocked or allowed.
 func (f *Filter) Match(name string) bool {
 	if f.allowlist.Match(name) {
 		return false
