@@ -75,6 +75,12 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 		}
 		f.uncloak = true
 
+	case "uncloak":
+		if c.NextArg() {
+			return c.ArgErr()
+		}
+		f.uncloak = true
+
 	default:
 		return c.Errf("unknown option '%s' ", c.Val())
 	}
