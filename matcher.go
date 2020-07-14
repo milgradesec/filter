@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type dnsFilter struct {
+type matcher struct {
 	hashtable  map[string]struct{}
 	prefixes   []string
 	suffixes   []string
@@ -17,16 +17,46 @@ type dnsFilter struct {
 	regexes    []*regexp.Regexp
 }
 
-func newDNSFilter() *dnsFilter {
-	return &dnsFilter{
+/*func newMatcher() *matcher {
+	return &matcher{
 		hashtable: make(map[string]struct{}),
 	}
+}*/
+
+func (f *matcher) Match(name string) bool {
+	name = strings.TrimSuffix(name, ".")
+
+	_, q := f.hashtable[name]
+	if q {
+		return true
+	}
+	for _, prefix := range f.prefixes {
+		if strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+	for _, suffix := range f.suffixes {
+		if strings.HasSuffix(name, suffix) {
+			return true
+		}
+		if name == strings.TrimPrefix(suffix, ".") {
+			return true
+		}
+	}
+	for _, substr := range f.subStrings {
+		if strings.Contains(name, substr) {
+			return true
+		}
+	}
+	for _, regex := range f.regexes {
+		if regex.MatchString(name) {
+			return true
+		}
+	}
+	return false
 }
 
-var regexpRunes = []string{"[", "]", "(", ")", "|", "?",
-	"+", "$", "{", "}", "^"}
-
-func (f *dnsFilter) ReadFrom(r io.Reader) (n int64, err error) {
+func (f *matcher) ReadFrom(r io.Reader) (n int64, err error) {
 	if r == nil {
 		return 0, errors.New("invalid list source")
 	}
@@ -75,39 +105,6 @@ func (f *dnsFilter) ReadFrom(r io.Reader) (n int64, err error) {
 	return n, nil
 }
 
-func (f *dnsFilter) Match(name string) bool {
-	name = strings.TrimSuffix(name, ".")
-
-	_, q := f.hashtable[name]
-	if q {
-		return true
-	}
-	for _, prefix := range f.prefixes {
-		if strings.HasPrefix(name, prefix) {
-			return true
-		}
-	}
-	for _, suffix := range f.suffixes {
-		if strings.HasSuffix(name, suffix) {
-			return true
-		}
-		if name == strings.TrimPrefix(suffix, ".") {
-			return true
-		}
-	}
-	for _, substr := range f.subStrings {
-		if strings.Contains(name, substr) {
-			return true
-		}
-	}
-	for _, regex := range f.regexes {
-		if regex.MatchString(name) {
-			return true
-		}
-	}
-	return false
-}
-
 type source struct {
 	Path  string
 	Block bool
@@ -120,3 +117,6 @@ func (s *source) Read() (src io.ReadCloser, err error) {
 	}
 	return f, nil
 }
+
+var regexpRunes = []string{"[", "]", "(", ")", "|", "?",
+	"+", "$", "{", "}", "^"}

@@ -22,15 +22,19 @@ type Filter struct {
 	uncloak bool
 	ttl     uint32
 
-	whitelist *dnsFilter
-	blacklist *dnsFilter
+	allowlist *matcher
+	denylist  *matcher
 }
 
 func New() *Filter {
 	return &Filter{
-		whitelist: newDNSFilter(),
-		blacklist: newDNSFilter(),
-		ttl:       defaultResponseTTL,
+		allowlist: &matcher{
+			hashtable: make(map[string]struct{}),
+		},
+		denylist: &matcher{
+			hashtable: make(map[string]struct{}),
+		},
+		ttl: defaultResponseTTL,
 	}
 }
 
@@ -44,7 +48,7 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		BlockCount.WithLabelValues(server).Inc()
 
 		msg := createReply(r, f.ttl)
-		w.WriteMsg(msg)
+		w.WriteMsg(msg) //nolint
 		return dns.RcodeSuccess, nil
 	}
 
@@ -61,11 +65,12 @@ func (f *Filter) Name() string {
 	return "filter"
 }
 
+// Match determines if the requested name should be blocked or allowed
 func (f *Filter) Match(name string) bool {
-	if f.whitelist.Match(name) {
+	if f.allowlist.Match(name) {
 		return false
 	}
-	if f.blacklist.Match(name) {
+	if f.denylist.Match(name) {
 		return true
 	}
 	return false
@@ -78,11 +83,11 @@ func (f *Filter) Load() error {
 			return err
 		}
 		if list.Block {
-			if _, err := f.blacklist.ReadFrom(rc); err != nil {
+			if _, err := f.denylist.ReadFrom(rc); err != nil {
 				return err
 			}
 		} else {
-			if _, err := f.whitelist.ReadFrom(rc); err != nil {
+			if _, err := f.allowlist.ReadFrom(rc); err != nil {
 				return err
 			}
 		}
@@ -107,7 +112,7 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 		return w.ResponseWriter.WriteMsg(m)
 	}
 
-	if w.whitelist.Match(w.state.Name()) {
+	if w.allowlist.Match(w.state.Name()) {
 		return w.ResponseWriter.WriteMsg(m)
 	}
 
@@ -123,7 +128,7 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 
 			r := w.state.Req
 			msg := createReply(r, w.ttl)
-			w.WriteMsg(msg)
+			w.WriteMsg(msg) //nolint
 			return nil
 		}
 	}
