@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/milgradesec/filter/workflows/CI/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/milgradesec/filter)](https://goreportcard.com/badge/github.com/milgradesec/filter)
-[![Code Coverage](https://img.shields.io/codecov/c/github/milgradesec/filter/master.svg)](https://codecov.io/github/milgradesec/filter?branch=master)
+[![codecov](https://codecov.io/gh/milgradesec/filter/branch/master/graph/badge.svg)](https://codecov.io/gh/milgradesec/filter)
 ![GitHub](https://img.shields.io/github/license/milgradesec/filter)
 
 ## Description
