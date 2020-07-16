@@ -30,7 +30,6 @@ type Filter struct {
 var (
 	instance *Filter
 	mutex    sync.Mutex
-	once     sync.Once
 )
 
 func New() *Filter {
