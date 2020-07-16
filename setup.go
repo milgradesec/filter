@@ -26,27 +26,32 @@ func setup(c *caddy.Controller) error {
 
 	c.OnStartup(func() error {
 		metrics.MustRegister(c, BlockCount)
-		return f.Load()
+		return nil
 	})
 
 	return nil
 }
 
 func parseFilter(c *caddy.Controller) (*Filter, error) {
-	if instance == nil {
-		once.Do(func() {
-			instance = New()
-		})
-	}
+	mutex.Lock()
+	defer mutex.Unlock()
 
-	for c.Next() {
-		for c.NextBlock() {
-			if err := parseBlock(c, instance); err != nil {
-				return nil, err
+	if instance == nil {
+		instance = New()
+
+		for c.Next() {
+			for c.NextBlock() {
+				if err := parseBlock(c, instance); err != nil {
+					return nil, err
+				}
 			}
 		}
-	}
 
+		err := instance.Load()
+		if err != nil {
+			return nil, err
+		}
+	}
 	return instance, nil
 }
 
