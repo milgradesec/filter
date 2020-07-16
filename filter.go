@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"strings"
+	"sync"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/metrics"
@@ -25,6 +26,12 @@ type Filter struct {
 	allowlist *matcher
 	denylist  *matcher
 }
+
+var (
+	instance *Filter
+	mutex    sync.Mutex
+	once     sync.Once
+)
 
 func New() *Filter {
 	return &Filter{

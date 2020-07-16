@@ -33,17 +33,21 @@ func setup(c *caddy.Controller) error {
 }
 
 func parseFilter(c *caddy.Controller) (*Filter, error) {
-	f := New()
+	if instance == nil {
+		once.Do(func() {
+			instance = New()
+		})
+	}
 
 	for c.Next() {
 		for c.NextBlock() {
-			if err := parseBlock(c, f); err != nil {
+			if err := parseBlock(c, instance); err != nil {
 				return nil, err
 			}
 		}
 	}
 
-	return f, nil
+	return instance, nil
 }
 
 func parseBlock(c *caddy.Controller, f *Filter) error {
