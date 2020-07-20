@@ -18,7 +18,7 @@ func TestSetup(t *testing.T) {
 		{`filter {
 			allow ./testdata/allowlist.list
 			block ./testdata/denylist.list
-			uncloak_cname
+			uncloak
 		}`, false},
 	}
 
