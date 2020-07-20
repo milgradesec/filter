@@ -28,31 +28,25 @@ func setup(c *caddy.Controller) error {
 		metrics.MustRegister(c, BlockCount)
 		return nil
 	})
-
 	return nil
 }
 
 func parseFilter(c *caddy.Controller) (*Filter, error) {
-	mutex.Lock()
-	defer mutex.Unlock()
+	f := New()
 
-	if instance == nil {
-		instance = New()
-
-		for c.Next() {
-			for c.NextBlock() {
-				if err := parseBlock(c, instance); err != nil {
-					return nil, err
-				}
+	for c.Next() {
+		for c.NextBlock() {
+			if err := parseBlock(c, f); err != nil {
+				return nil, err
 			}
 		}
-
-		err := instance.Load()
-		if err != nil {
-			return nil, err
-		}
 	}
-	return instance, nil
+
+	err := f.Load()
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
 }
 
 func parseBlock(c *caddy.Controller, f *Filter) error {
@@ -77,12 +71,6 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 		if c.NextArg() {
 			return c.ArgErr()
 		}
-
-	case "uncloak_cname":
-		if c.NextArg() {
-			return c.ArgErr()
-		}
-		f.uncloak = true
 
 	case "uncloak":
 		if c.NextArg() {

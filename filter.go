@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 	"strings"
-	"sync"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/metrics"
@@ -26,11 +25,6 @@ type Filter struct {
 	allowlist *matcher
 	denylist  *matcher
 }
-
-var (
-	instance *Filter
-	mutex    sync.Mutex
-)
 
 func New() *Filter {
 	return &Filter{
@@ -89,11 +83,11 @@ func (f *Filter) Load() error {
 			return err
 		}
 		if list.Block {
-			if _, err := f.denylist.ReadFrom(rc); err != nil {
+			if _, err := f.denylist.Load(rc); err != nil {
 				return err
 			}
 		} else {
-			if _, err := f.allowlist.ReadFrom(rc); err != nil {
+			if _, err := f.allowlist.Load(rc); err != nil {
 				return err
 			}
 		}

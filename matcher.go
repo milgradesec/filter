@@ -50,7 +50,7 @@ func (f *matcher) Match(name string) bool {
 	return false
 }
 
-func (f *matcher) ReadFrom(r io.Reader) (n int64, err error) {
+func (f *matcher) Load(r io.Reader) (n int64, err error) {
 	if r == nil {
 		return 0, errors.New("invalid list source")
 	}
