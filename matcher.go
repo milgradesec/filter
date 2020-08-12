@@ -64,6 +64,10 @@ func (f *matcher) Load(r io.Reader) (n int64, err error) {
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
+		if strings.Contains(line, "#") {
+			i := strings.Index(line, "#")
+			line = strings.TrimSpace(line[:i])
+		}
 		for _, op := range regexpRunes {
 			if strings.Contains(line, op) {
 				r, err := regexp.Compile(line)
