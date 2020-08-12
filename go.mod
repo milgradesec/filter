@@ -1,6 +1,6 @@
 module github.com/milgradesec/filter
 
-go 1.14
+go 1.15
 
 require (
 	github.com/caddyserver/caddy v1.0.5
