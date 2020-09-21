@@ -4,7 +4,6 @@ import (
 	"github.com/caddyserver/caddy"
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
-	"github.com/coredns/coredns/plugin/metrics"
 )
 
 const pluginName = "filter"
@@ -24,10 +23,6 @@ func setup(c *caddy.Controller) error {
 		return f
 	})
 
-	c.OnStartup(func() error {
-		metrics.MustRegister(c, BlockCount)
-		return nil
-	})
 	return nil
 }
 
