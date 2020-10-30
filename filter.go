@@ -82,6 +82,8 @@ func (f *Filter) Load() error {
 		if err != nil {
 			return err
 		}
+		defer rc.Close()
+
 		if list.Block {
 			if _, err := f.denylist.Load(rc); err != nil {
 				return err
@@ -91,7 +93,6 @@ func (f *Filter) Load() error {
 				return err
 			}
 		}
-		rc.Close()
 	}
 
 	return nil
