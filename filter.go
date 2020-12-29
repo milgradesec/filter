@@ -11,7 +11,7 @@ import (
 	"github.com/miekg/dns"
 )
 
-const defaultResponseTTL = 600
+const defaultResponseTTL = 3600
 
 // Filter represents a plugin instance that can filter and block requests based
 // on predefined lists and regex rules.
