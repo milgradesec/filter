@@ -118,13 +118,25 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 	}
 
 	for _, r := range m.Answer {
-		hdr := r.Header()
-		if hdr.Class != dns.ClassINET || hdr.Rrtype != dns.TypeCNAME {
+		header := r.Header()
+		if header.Class != dns.ClassINET {
 			continue
 		}
 
-		cname := strings.TrimSuffix(r.(*dns.CNAME).Target, ".")
-		if w.Match(cname) {
+		var target string
+		switch header.Rrtype {
+		case dns.TypeCNAME:
+			target = r.(*dns.CNAME).Target
+		case dns.TypeSVCB:
+			target = r.(*dns.SVCB).Target
+		case dns.TypeHTTPS:
+			target = r.(*dns.HTTPS).Target
+		default:
+			continue
+		}
+
+		target = strings.TrimSuffix(target, ".")
+		if w.Match(target) {
 			BlockCount.WithLabelValues(w.server).Inc()
 
 			r := w.state.Req
