@@ -98,7 +98,7 @@ func (f *Filter) Load() error {
 	return nil
 }
 
-// ResponseWriter is a response writer that performs CNAME uncloaking.
+// ResponseWriter is a response writer that performs response uncloaking.
 type ResponseWriter struct {
 	dns.ResponseWriter
 	*Filter
