@@ -12,7 +12,7 @@ The _filter_ plugins enables blocking requests based on predefined lists and rul
 ## Features
 
 - Regex and simple string matching support.
-- CNAME inspection detects and blocks cloaking.
+- Inspection of CNAME, SVCB and HTTPS records detects and blocks cloaking.
 - Block replies are fully cacheable by the _cache_ plugin.
 
 ## Syntax
@@ -27,7 +27,7 @@ filter {
 
 - `allow` load **FILE** to the whitelist.
 - `block` load **FILE** to the blacklist.
-- `uncloak` enables cname uncloaking.
+- `uncloak` enables response uncloaking.
 
 ## Metrics
 
