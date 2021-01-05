@@ -161,10 +161,11 @@ func createReply(r *dns.Msg, ttl uint32) *dns.Msg {
 		answers = append(answers, a)
 
 	case dns.TypeAAAA:
-		a := new(dns.AAAA)
-		a.Hdr = dns.RR_Header{Name: qname, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: ttl}
-		a.AAAA = net.IPv6zero
-		answers = append(answers, a)
+		aaaa := new(dns.AAAA)
+		aaaa.Hdr = dns.RR_Header{Name: qname, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: ttl}
+		aaaa.AAAA = net.IPv6zero
+		answers = append(answers, aaaa)
+
 	default:
 		msg := new(dns.Msg)
 		msg.SetReply(r)
