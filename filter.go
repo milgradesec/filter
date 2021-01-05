@@ -148,12 +148,6 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 	return w.ResponseWriter.WriteMsg(m)
 }
 
-// Write implements the dns.ResponseWriter interface.
-func (w *ResponseWriter) Write(buf []byte) (int, error) {
-	// log ?
-	return w.ResponseWriter.Write(buf)
-}
-
 func createReply(r *dns.Msg, ttl uint32) *dns.Msg {
 	state := request.Request{Req: r}
 	qname := state.Name()
