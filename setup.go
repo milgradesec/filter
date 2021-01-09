@@ -66,11 +66,6 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 		l := source{Path: c.Val(), Block: true}
 		f.sources = append(f.sources, l)
 
-	case "exclude":
-		if c.NextArg() {
-			return c.ArgErr()
-		}
-
 	case "uncloak":
 		if c.NextArg() {
 			return c.ArgErr()
