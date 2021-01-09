@@ -1,12 +1,17 @@
 package filter
 
 import (
+	"strconv"
+
 	"github.com/coredns/caddy"
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
+	clog "github.com/coredns/coredns/plugin/pkg/log"
 )
 
 const pluginName = "filter"
+
+var log = clog.NewWithPlugin(pluginName)
 
 func init() {
 	plugin.Register(pluginName, setup)
@@ -22,7 +27,6 @@ func setup(c *caddy.Controller) error {
 		f.Next = next
 		return f
 	})
-
 	return nil
 }
 
@@ -72,6 +76,17 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 			return c.ArgErr()
 		}
 		f.uncloak = true
+
+	case "ttl":
+		if !c.NextArg() {
+			return c.ArgErr()
+		}
+
+		ttl, err := strconv.ParseUint(c.Val(), 10, 32)
+		if err != nil {
+			return c.Errf("invalid ttl value: %s", c.Val())
+		}
+		f.ttl = uint32(ttl)
 
 	default:
 		return c.Errf("unknown option '%s' ", c.Val())

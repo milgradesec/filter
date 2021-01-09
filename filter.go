@@ -11,8 +11,6 @@ import (
 	"github.com/miekg/dns"
 )
 
-const defaultResponseTTL = 3600
-
 // Filter represents a plugin instance that can filter and block requests based
 // on predefined lists and regex rules.
 type Filter struct {
@@ -25,6 +23,8 @@ type Filter struct {
 	allowlist *matcher
 	denylist  *matcher
 }
+
+const defaultResponseTTL = 3600
 
 func New() *Filter {
 	return &Filter{
