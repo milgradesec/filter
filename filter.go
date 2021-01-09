@@ -177,6 +177,7 @@ func createReply(r *dns.Msg, ttl uint32) *dns.Msg {
 	msg.SetReply(r)
 	msg.SetRcode(r, dns.RcodeSuccess)
 	msg.Authoritative = true
+	msg.RecursionAvailable = true
 	msg.Answer = answers
 	return msg
 }
