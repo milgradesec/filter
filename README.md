@@ -28,6 +28,7 @@ filter {
 - `allow` load **FILE** to the whitelist.
 - `block` load **FILE** to the blacklist.
 - `uncloak` enables response uncloaking.
+- `ttl` sets ttl for blocked responses.
 
 ## Metrics
 
