@@ -43,6 +43,7 @@ If monitoring is enabled (via the _prometheus_ plugin) then the following metric
         allow ./lists/whitelist.txt
         block ./lists/blacklist.txt
         uncloak
+        ttl 600
     }
     forward . 1.1.1.1
 }
