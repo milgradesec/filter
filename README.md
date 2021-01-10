@@ -29,7 +29,7 @@ filter {
 - `allow` load **FILE** to the whitelist.
 - `block` load **FILE** to the blacklist.
 - `uncloak` enables response uncloaking, disabled by default.
-- `ttl` sets ttl for blocked responses, default is 3600s.
+- `ttl` sets **TTL** for blocked responses, default is 3600s.
 
 ## Metrics
 
