@@ -7,12 +7,15 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"unicode/utf8"
+
+	iradix "github.com/hashicorp/go-immutable-radix"
 )
 
 type matcher struct {
 	hashtable  map[string]struct{}
-	prefixes   []string
-	suffixes   []string
+	prefixes   *iradix.Tree
+	suffixes   *iradix.Tree
 	subStrings []string
 	regexes    []*regexp.Regexp
 }
@@ -20,22 +23,21 @@ type matcher struct {
 func (f *matcher) Match(name string) bool {
 	name = strings.TrimSuffix(name, ".")
 
-	_, q := f.hashtable[name]
-	if q {
+	_, found := f.hashtable[name]
+	if found {
 		return true
 	}
-	for _, prefix := range f.prefixes {
-		if strings.HasPrefix(name, prefix) {
-			return true
-		}
+	_, _, found = f.prefixes.Root().LongestPrefix([]byte(name))
+	if found {
+		return true
 	}
-	for _, suffix := range f.suffixes {
-		if strings.HasSuffix(name, suffix) {
-			return true
-		}
-		if name == strings.TrimPrefix(suffix, ".") {
-			return true
-		}
+	_, _, found = f.suffixes.Root().LongestPrefix([]byte(stringReverse(name)))
+	if found {
+		return true
+	}
+	_, found = f.suffixes.Root().Get([]byte(stringReverse(name) + "."))
+	if found {
+		return true
 	}
 	for _, substr := range f.subStrings {
 		if strings.Contains(name, substr) {
@@ -86,11 +88,11 @@ func (f *matcher) Load(r io.Reader) (n int64, err error) {
 			}
 			if strings.HasSuffix(scanner.Text(), "*") {
 				domain := strings.TrimSuffix(line, "*")
-				f.prefixes = append(f.prefixes, domain)
+				f.prefixes, _, _ = f.prefixes.Insert([]byte(domain), 1)
 			}
 			if strings.HasPrefix(scanner.Text(), "*") {
 				domain := strings.TrimPrefix(line, "*")
-				f.suffixes = append(f.suffixes, domain)
+				f.suffixes, _, _ = f.suffixes.Insert([]byte(stringReverse(domain)), 1)
 			}
 		} else {
 			f.hashtable[line] = struct{}{}
@@ -118,3 +120,14 @@ func (s *source) Read() (src io.ReadCloser, err error) {
 
 var regexpRunes = []string{"[", "]", "(", ")", "|", "?",
 	"+", "$", "{", "}", "^"}
+
+func stringReverse(s string) string {
+	size := len(s)
+	buf := make([]byte, size)
+	for start := 0; start < size; {
+		r, n := utf8.DecodeRuneInString(s[start:])
+		start += n
+		utf8.EncodeRune(buf[size-start:], r)
+	}
+	return string(buf)
+}

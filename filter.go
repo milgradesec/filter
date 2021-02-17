@@ -7,6 +7,7 @@ import (
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/metrics"
 	"github.com/coredns/coredns/request"
+	iradix "github.com/hashicorp/go-immutable-radix"
 	"github.com/miekg/dns"
 )
 
@@ -28,9 +29,13 @@ const defaultResponseTTL = 3600
 func New() *Filter {
 	return &Filter{
 		allowlist: &matcher{
+			prefixes:  iradix.New(),
+			suffixes:  iradix.New(),
 			hashtable: make(map[string]struct{}),
 		},
 		denylist: &matcher{
+			prefixes:  iradix.New(),
+			suffixes:  iradix.New(),
 			hashtable: make(map[string]struct{}),
 		},
 		ttl: defaultResponseTTL,
