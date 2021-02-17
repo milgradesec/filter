@@ -12,6 +12,46 @@ import (
 	"github.com/miekg/dns"
 )
 
+func Test_Filter(t *testing.T) {
+	c := caddy.NewTestController("dns", `filter  {
+		allow ./testdata/allowlist.list
+		block ./testdata/denylist.list
+	}`)
+
+	f, err := parseFilter(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.Next = test.NextHandler(dns.RcodeSuccess, nil)
+
+	if err = f.Load(); err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name  string
+		block bool
+	}{
+		{"example.com.", false},
+		{"ads.example.com.", false},
+		{"facebook.com.", false},
+		{"ads.facebook.com", true},
+		{"adservice.google.com.", true},
+		{"mipcwtf.lan.", true},
+		{"taboola.com.", true},
+		{"example.taboola.com.", true},
+		{"cdn.outbrain.com", true},
+		{".", false},
+	}
+
+	for i, tt := range tests {
+		block := f.Match(tt.name)
+		if block != tt.block {
+			t.Errorf("Test %d: expected '%s' to be blocked", i, tt.name)
+		}
+	}
+}
+
 func Test_ServeDNS(t *testing.T) {
 	c := caddy.NewTestController("dns", `filter  {
 		allow ./testdata/allowlist.list
@@ -31,17 +71,12 @@ func Test_ServeDNS(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		block   bool
 		dnsType uint16
 	}{
-		{"example.com.", false, dns.TypeA},
-		{"facebook.com.", false, dns.TypeAAAA},
-		{"adservice.google.com.", true, dns.TypeA},
-		{"ads.example.com.", true, dns.TypeAAAA},
-		{"mipcwtf.lan.", true, dns.TypeA},
-		{"taboola.com.", true, dns.TypeAAAA},
-		{"example.taboola.com.", true, dns.TypeA},
-		{".", false, dns.TypeA},
+		{"example.com.", dns.TypeA},
+		{"facebook.com.", dns.TypeAAAA},
+		{"adservice.google.com.", dns.TypeA},
+		{".", dns.TypeA},
 	}
 
 	for i, tt := range tests {
