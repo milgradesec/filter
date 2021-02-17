@@ -2,7 +2,6 @@ package filter
 
 import (
 	"context"
-	"net"
 	"strings"
 
 	"github.com/coredns/coredns/plugin"
@@ -150,35 +149,15 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 
 func createReply(r *dns.Msg, ttl uint32) *dns.Msg {
 	state := request.Request{Req: r}
-	qname := state.Name()
-	answers := []dns.RR{}
 
 	switch state.QType() {
 	case dns.TypeA:
-		a := new(dns.A)
-		a.Hdr = dns.RR_Header{Name: qname, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: ttl}
-		a.A = net.IPv4zero
-		answers = append(answers, a)
+		return newAResponse(r, ttl)
 
 	case dns.TypeAAAA:
-		aaaa := new(dns.AAAA)
-		aaaa.Hdr = dns.RR_Header{Name: qname, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: ttl}
-		aaaa.AAAA = net.IPv6zero
-		answers = append(answers, aaaa)
+		return newAAAAResponse(r, ttl)
 
 	default:
-		msg := new(dns.Msg)
-		msg.SetReply(r)
-		msg.SetRcode(r, dns.RcodeNameError)
-		return msg
+		return newNXDomainResponse(r, ttl)
 	}
-
-	msg := new(dns.Msg)
-	msg.SetReply(r)
-	msg.SetRcode(r, dns.RcodeSuccess)
-	msg.Authoritative = true
-	msg.RecursionAvailable = true
-	msg.Compress = true
-	msg.Answer = answers
-	return msg
 }
