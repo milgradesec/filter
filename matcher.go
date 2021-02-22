@@ -23,8 +23,8 @@ type matcher struct {
 func newMatcher() *matcher {
 	return &matcher{
 		hashtable: map[string]struct{}{},
-		prefixes:  &iradix.Tree{},
-		suffixes:  &iradix.Tree{},
+		prefixes:  iradix.New(),
+		suffixes:  iradix.New(),
 	}
 }
 
