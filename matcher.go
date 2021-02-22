@@ -20,6 +20,14 @@ type matcher struct {
 	regexes    []*regexp.Regexp
 }
 
+func newMatcher() *matcher {
+	return &matcher{
+		hashtable: map[string]struct{}{},
+		prefixes:  &iradix.Tree{},
+		suffixes:  &iradix.Tree{},
+	}
+}
+
 func (f *matcher) Match(name string) bool {
 	name = strings.TrimSuffix(name, ".")
 
