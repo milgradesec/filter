@@ -10,19 +10,24 @@ import (
 	"github.com/miekg/dns"
 )
 
-const defaultResponseTTL = 3600
+const defaultResponseTTL = 3600 // Default TTL used for generated responses.
 
 // Filter represents a plugin instance that can filter and block requests based
 // on predefined lists and regex rules.
 type Filter struct {
 	Next plugin.Handler
 
-	sources []source
-	uncloak bool
-	ttl     uint32
-
 	allowlist *matcher
 	denylist  *matcher
+
+	// sources to load data into filters.
+	sources []source
+
+	// uncloak enables response inspection for CNAME cloaking.
+	uncloak bool
+
+	// ttl sets a custom TTL.
+	ttl uint32
 }
 
 func New() *Filter {
