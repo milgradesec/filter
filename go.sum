@@ -87,8 +87,8 @@ github.com/cockroachdb/datadriven v0.0.0-20190809214429-80d97fb3cbaa/go.mod h1:z
 github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd/go.mod h1:sE/e/2PUdi/liOCUjSTXgM1o87ZssimdTWN964YiIeI=
 github.com/coredns/caddy v1.1.0 h1:ezvsPrT/tA/7pYDBZxu0cT0VmWk75AfIaf6GSYCNMf0=
 github.com/coredns/caddy v1.1.0/go.mod h1:A6ntJQlAWuQfFlsd9hvigKbo2WS0VUs2l1e2F+BawD4=
-github.com/coredns/coredns v1.8.2 h1:1PWj0VlfNW7eKOGj4e0rX+U7sZN/qDIJqEouw33qFxo=
-github.com/coredns/coredns v1.8.2/go.mod h1:RASzudQ736u22IGxZa+F7EjICJjUm7qJHk4PBjPn5HE=
+github.com/coredns/coredns v1.8.3 h1:Kihzjb48bUtl7lTQ1NYJfXbD4AI9hKBNIiTDmLodB44=
+github.com/coredns/coredns v1.8.3/go.mod h1:RASzudQ736u22IGxZa+F7EjICJjUm7qJHk4PBjPn5HE=
 github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
 github.com/coreos/go-systemd v0.0.0-20180511133405-39ca1b05acc7/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
 github.com/coreos/go-systemd/v22 v22.0.0/go.mod h1:xO0FLkIi5MaZafQlIrOotqXZ90ih+1atmu1JpKERPPk=
