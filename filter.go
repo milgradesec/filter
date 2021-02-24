@@ -147,18 +147,3 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 	}
 	return w.ResponseWriter.WriteMsg(m)
 }
-
-func createReply(r *dns.Msg, ttl uint32) *dns.Msg {
-	state := request.Request{Req: r}
-
-	switch state.QType() {
-	case dns.TypeA:
-		return newAResponse(r, ttl)
-
-	case dns.TypeAAAA:
-		return newAAAAResponse(r, ttl)
-
-	default:
-		return newNXDomainResponse(r, ttl)
-	}
-}

@@ -3,8 +3,24 @@ package filter
 import (
 	"net"
 
+	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
 )
+
+func createReply(r *dns.Msg, ttl uint32) *dns.Msg {
+	state := request.Request{Req: r}
+
+	switch state.QType() {
+	case dns.TypeA:
+		return newAResponse(r, ttl)
+
+	case dns.TypeAAAA:
+		return newAAAAResponse(r, ttl)
+
+	default:
+		return newNXDomainResponse(r, ttl)
+	}
+}
 
 func newAResponse(r *dns.Msg, ttl uint32) *dns.Msg {
 	a := new(dns.A)
