@@ -17,8 +17,8 @@ const defaultResponseTTL = 3600 // Default TTL used for generated responses.
 type Filter struct {
 	Next plugin.Handler
 
-	allowlist *matcher
-	denylist  *matcher
+	allowlist *PatternMatcher
+	denylist  *PatternMatcher
 
 	// sources to load data into filters.
 	sources []source
@@ -32,8 +32,8 @@ type Filter struct {
 
 func New() *Filter {
 	return &Filter{
-		allowlist: newMatcher(),
-		denylist:  newMatcher(),
+		allowlist: NewPatternMatcher(),
+		denylist:  NewPatternMatcher(),
 		ttl:       defaultResponseTTL,
 	}
 }
