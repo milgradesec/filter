@@ -85,11 +85,11 @@ func (f *Filter) Load() error {
 		defer rc.Close()
 
 		if list.Block {
-			if _, err := f.denylist.Load(rc); err != nil {
+			if err := f.denylist.Load(rc); err != nil {
 				return err
 			}
 		} else {
-			if _, err := f.allowlist.Load(rc); err != nil {
+			if err := f.allowlist.Load(rc); err != nil {
 				return err
 			}
 		}

@@ -99,22 +99,22 @@ func (f *PatternMatcher) Match(qname string) bool {
 	return false
 }
 
-func (f *PatternMatcher) Load(r io.Reader) (n int64, err error) {
+func (f *PatternMatcher) Load(r io.Reader) error {
 	if r == nil {
-		return 0, errors.New("invalid list source")
+		return errors.New("invalid list source")
 	}
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		err := f.Add(scanner.Text())
 		if err != nil {
-			return 0, err
+			log.Error(err)
 		}
 		if scanner.Err() != nil {
-			return 0, scanner.Err()
+			return scanner.Err()
 		}
 	}
-	return n, nil
+	return nil
 }
 
 type source struct {
