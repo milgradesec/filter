@@ -11,7 +11,7 @@ import (
 	"github.com/miekg/dns"
 )
 
-func Test_Filter(t *testing.T) {
+func TestFilter(t *testing.T) {
 	c := caddy.NewTestController("dns", `filter  {
 		allow ./testdata/allowlist.list
 		block ./testdata/denylist.list
@@ -51,7 +51,7 @@ func Test_Filter(t *testing.T) {
 	}
 }
 
-func Test_ServeDNS(t *testing.T) {
+func TestServeDNS(t *testing.T) {
 	c := caddy.NewTestController("dns", `filter  {
 		allow ./testdata/allowlist.list
 		block ./testdata/denylist.list
@@ -92,7 +92,7 @@ func Test_ServeDNS(t *testing.T) {
 	}
 }
 
-func Test_Uncloak(t *testing.T) {
+func TestUncloak(t *testing.T) {
 	c := caddy.NewTestController("dns", `filter  {
 		allow ./testdata/allowlist.list
 		block ./testdata/denylist.list
