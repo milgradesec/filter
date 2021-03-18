@@ -7,5 +7,5 @@ require (
 	github.com/coredns/coredns v1.8.3
 	github.com/hashicorp/go-immutable-radix v1.3.0
 	github.com/miekg/dns v1.1.40
-	github.com/prometheus/client_golang v1.9.0
+	github.com/prometheus/client_golang v1.10.0
 )
