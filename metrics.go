@@ -7,6 +7,18 @@ import (
 )
 
 var (
+	BlockListSize = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace: plugin.Namespace,
+		Subsystem: pluginName,
+		Name:      "blocklist_size_total",
+	})
+
+	AllowListSize = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace: plugin.Namespace,
+		Subsystem: pluginName,
+		Name:      "allowlist_size_total",
+	})
+
 	BlockCount = promauto.NewCounterVec(prometheus.CounterOpts{
 		Namespace: plugin.Namespace,
 		Subsystem: pluginName,
