@@ -44,8 +44,8 @@ If monitoring is enabled (via the _prometheus_ plugin) then the following metric
 ```corefile
 .:53 {
     filter {
-        allow ./lists/whitelist.txt
-        block ./lists/blacklist.txt
+        allow ./lists/allowlist.txt
+        block ./lists/denylist.txt
         uncloak
         ttl 600
     }
