@@ -20,13 +20,11 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - lll
     - misspell
     - nakedret
     - nolintlint
     - rowserrcheck
-    - scopelint
     - staticcheck
     - structcheck
     - stylecheck
@@ -39,7 +37,7 @@ linters:
     - godot
     - godox
     - prealloc
-    - maligned
+    - exportloopref
 
 run:
   skip-dirs:
