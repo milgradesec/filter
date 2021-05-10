@@ -38,6 +38,8 @@ linters:
     - godox
     - prealloc
     - exportloopref
+    - promlinter
+    - tagliatelle
 
 run:
   skip-dirs:
