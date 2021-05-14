@@ -41,8 +41,7 @@ func parseFilter(c *caddy.Controller) (*Filter, error) {
 		}
 	}
 
-	err := f.Load()
-	if err != nil {
+	if err := f.Load(); err != nil {
 		return nil, err
 	}
 	return f, nil
