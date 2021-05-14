@@ -14,7 +14,6 @@ linters:
     - gocritic
     - gocyclo
     - golint
-    - gomnd
     - goprintffuncname
     - gosec
     - gosimple
