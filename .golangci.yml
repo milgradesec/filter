@@ -55,6 +55,8 @@ linters:
     - wastedassign
     - forbidigo
     - forcetypeassert
+    - gci
+    - goheader
 
 run:
   skip-dirs:
