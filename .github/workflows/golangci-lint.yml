@@ -1,4 +1,4 @@
-name: golangci-lint
+name: GolangCI-Lint
 on:
   push:
     tags:
@@ -14,7 +14,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: golangci-lint
+      - name: Run
         uses: golangci/golangci-lint-action@v2
-        with:
-          version: v1.40
