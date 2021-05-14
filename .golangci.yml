@@ -54,6 +54,7 @@ linters:
     - sqlclosecheck
     - wastedassign
     - forbidigo
+    - forcetypeassert
 
 run:
   skip-dirs:
