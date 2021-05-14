@@ -68,12 +68,12 @@ func newNXDomainResponse(r *dns.Msg, ttl uint32) *dns.Msg {
 	msg.SetRcode(r, dns.RcodeNameError)
 
 	msg.Ns = []dns.RR{&dns.SOA{
-		Refresh: 1800,   //nolint
-		Retry:   900,    //nolint
-		Expire:  604800, //nolint
-		Minttl:  86400,  //nolint
+		Refresh: 1800,
+		Retry:   900,
+		Expire:  604800,
+		Minttl:  86400,
 		Ns:      "fake-for-negative-caching.dns.paesa.es.",
-		Serial:  100500, //nolint
+		Serial:  100500,
 
 		Hdr: dns.RR_Header{
 			Name:   r.Question[0].Name,
