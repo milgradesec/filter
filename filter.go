@@ -43,9 +43,8 @@ func New() *Filter {
 func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
 	server := metrics.WithServer(ctx)
-	qname := state.Name()
 
-	if f.Match(qname) {
+	if f.Match(state.Name()) {
 		BlockCount.WithLabelValues(server).Inc()
 
 		metadata.SetValueFunc(ctx, "filter/status", func() string {
