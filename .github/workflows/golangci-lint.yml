@@ -1,4 +1,5 @@
 name: GolangCI-Lint
+
 on:
   push:
     tags:
