@@ -1,4 +1,4 @@
-name: Cleanup Worflow Runs
+name: Cleanup Workflow Runs
 
 on:
   schedule:
