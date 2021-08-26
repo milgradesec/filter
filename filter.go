@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/coredns/coredns/plugin"
-	"github.com/coredns/coredns/plugin/metadata"
 	"github.com/coredns/coredns/plugin/metrics"
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
@@ -47,10 +46,6 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	if f.Match(state.Name()) {
 		BlockCount.WithLabelValues(server).Inc()
 
-		metadata.SetValueFunc(ctx, "filter/status", func() string {
-			return "BLOCK"
-		})
-
 		msg := createReply(r, f.ttl)
 		w.WriteMsg(msg) //nolint
 		return dns.RcodeSuccess, nil
@@ -60,10 +55,6 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		rw := &ResponseWriter{ResponseWriter: w, state: state, server: server, Filter: f}
 		return plugin.NextOrFailure(f.Name(), f.Next, ctx, rw, r)
 	}
-
-	metadata.SetValueFunc(ctx, "filter/status", func() string {
-		return "ALLOW"
-	})
 
 	return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
 }
@@ -102,7 +93,6 @@ func (f *Filter) Load() error {
 			}
 		}
 	}
-
 	return nil
 }
 
