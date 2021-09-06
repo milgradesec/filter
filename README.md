@@ -49,6 +49,8 @@ If monitoring is enabled (via the _prometheus_ plugin) then the following metric
         uncloak
         ttl 600
     }
-    forward . 1.1.1.1
+    forward . tls://1.1.1.1 tls://1.0.0.1 {
+        tls_servername cloudflare-dns.com
+    }
 }
 ```
