@@ -52,15 +52,16 @@ func (f *PatternMatcher) Add(pattern string) error {
 			qname := strings.TrimPrefix(pattern, "*")
 			qname = strings.TrimSuffix(qname, "*")
 			f.subStrings = append(f.subStrings, qname)
-		}
-		if strings.HasSuffix(pattern, "*") {
+
+		} else if strings.HasSuffix(pattern, "*") {
 			domain := strings.TrimSuffix(pattern, "*")
 			f.prefixes, _, _ = f.prefixes.Insert([]byte(domain), 1)
-		}
-		if strings.HasPrefix(pattern, "*") {
+
+		} else if strings.HasPrefix(pattern, "*") {
 			domain := strings.TrimPrefix(pattern, "*")
 			f.suffixes, _, _ = f.suffixes.Insert([]byte(stringReverse(domain)), 1)
 		}
+
 	} else {
 		f.exactStrings[pattern] = struct{}{}
 	}
