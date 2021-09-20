@@ -76,6 +76,7 @@ func TestServeDNS(t *testing.T) {
 		{"example.com.", dns.TypeA},
 		{"facebook.com.", dns.TypeAAAA},
 		{"adservice.google.com.", dns.TypeA},
+		{"amazon-adsystem.com.", dns.TypeAAAA},
 		{".", dns.TypeA},
 	}
 
