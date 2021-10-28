@@ -9,7 +9,7 @@
 
 ## Description
 
-The _filter_ plugins enables blocking requests based on predefined lists and rules, creating a DNS sinkhole similar to Pi-Hole.
+The _filter_ plugins enables blocking requests based on predefined lists and rules, creating a DNS sinkhole similar to Pi-Hole or AdGuard.
 
 ## Features
 
