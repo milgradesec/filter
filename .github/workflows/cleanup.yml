@@ -3,12 +3,6 @@ name: Cleanup Workflow Runs
 on:
   schedule:
     - cron: "0 0 1 * *"
-  workflow_dispatch:
-    inputs:
-      days:
-        description: "Number of days."
-        required: true
-        default: 30
 
 jobs:
   cleanup:
@@ -19,6 +13,7 @@ jobs:
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v1
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           retain_days: 30
 
