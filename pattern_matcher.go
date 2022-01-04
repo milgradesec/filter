@@ -33,6 +33,7 @@ func (f *PatternMatcher) Add(pattern string) error {
 		return nil
 	}
 
+	pattern = strings.TrimSpace(pattern)
 	if strings.Contains(pattern, "#") {
 		i := strings.Index(pattern, "#")
 		pattern = strings.TrimSpace(pattern[:i])

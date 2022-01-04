@@ -41,6 +41,7 @@ func TestFilter(t *testing.T) {
 		{"example.taboola.com.", true},
 		{"cdn.outbrain.com", true},
 		{"example.tracker.global", true},
+		{"malware.com.co", true},
 		{".", false},
 	}
 
