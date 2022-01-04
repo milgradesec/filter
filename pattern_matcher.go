@@ -29,11 +29,12 @@ func NewPatternMatcher() *PatternMatcher {
 }
 
 func (f *PatternMatcher) Add(pattern string) error {
+	pattern = strings.TrimSpace(pattern)
+
 	if pattern == "" || strings.HasPrefix(pattern, "#") {
 		return nil
 	}
 
-	pattern = strings.TrimSpace(pattern)
 	if strings.Contains(pattern, "#") {
 		i := strings.Index(pattern, "#")
 		pattern = strings.TrimSpace(pattern[:i])
