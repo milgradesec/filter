@@ -34,7 +34,6 @@ func (f *PatternMatcher) Add(pattern string) error {
 	if pattern == "" || strings.HasPrefix(pattern, "#") {
 		return nil
 	}
-
 	if strings.Contains(pattern, "#") {
 		i := strings.Index(pattern, "#")
 		pattern = strings.TrimSpace(pattern[:i])
