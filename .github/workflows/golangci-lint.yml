@@ -16,4 +16,4 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Run
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3
