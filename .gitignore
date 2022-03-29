@@ -16,3 +16,6 @@ __debug_bin
 
 # VS Code
 .vscode/
+
+# Snyk
+.dccache
