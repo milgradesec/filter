@@ -124,11 +124,11 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 		var target string
 		switch header.Rrtype {
 		case dns.TypeCNAME:
-			target = r.(*dns.CNAME).Target
+			target = r.(*dns.CNAME).Target //nolint
 		case dns.TypeSVCB:
-			target = r.(*dns.SVCB).Target
+			target = r.(*dns.SVCB).Target //nolint
 		case dns.TypeHTTPS:
-			target = r.(*dns.HTTPS).Target
+			target = r.(*dns.HTTPS).Target //nolint
 		default:
 			continue
 		}
