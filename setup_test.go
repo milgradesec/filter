@@ -25,9 +25,6 @@ func TestSetup(t *testing.T) {
 			block ./testdata/denylist.list
 			uncloak
 		}`, false},
-		{`filter {
-			allow s3::https://c34eb1b082abb2c3786c4f008b295dd4.r2.cloudflarestorage.com/paesadns-lists/allow.rules
-		}`, false},
 	}
 
 	for i, test := range tests {
