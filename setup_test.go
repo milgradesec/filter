@@ -19,6 +19,10 @@ func TestSetup(t *testing.T) {
 			allow ./testdata/allowlist.list
 			block ./testdata/denylist.list
 			ttl 300
+		}`, false},
+		{`filter {
+			allow ./testdata/allowlist.list
+			block ./testdata/denylist.list
 			uncloak
 		}`, false},
 	}

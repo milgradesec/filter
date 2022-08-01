@@ -21,7 +21,7 @@ type Filter struct {
 	denylist  *PatternMatcher
 
 	// sources to load data into filters.
-	sources []source
+	sources []listSource
 
 	// uncloak enables response inspection for CNAME cloaking.
 	uncloak bool
@@ -76,19 +76,19 @@ func (f *Filter) Match(name string) bool {
 }
 
 func (f *Filter) Load() error {
-	for _, list := range f.sources {
-		rc, err := list.Read()
+	for _, src := range f.sources {
+		rc, err := src.Open()
 		if err != nil {
 			return err
 		}
 		defer rc.Close()
 
-		if list.Block {
-			if err := f.denylist.Load(rc); err != nil {
+		if src.IsBlock {
+			if err := f.denylist.LoadRules(rc); err != nil {
 				return err
 			}
 		} else {
-			if err := f.allowlist.Load(rc); err != nil {
+			if err := f.allowlist.LoadRules(rc); err != nil {
 				return err
 			}
 		}
