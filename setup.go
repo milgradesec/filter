@@ -54,7 +54,7 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 			return c.ArgErr()
 		}
 
-		l := source{Path: c.Val(), Block: false}
+		l := listSource{Path: c.Val(), IsBlock: false}
 		f.sources = append(f.sources, l)
 
 	case "block":
@@ -62,7 +62,7 @@ func parseBlock(c *caddy.Controller, f *Filter) error {
 			return c.ArgErr()
 		}
 
-		l := source{Path: c.Val(), Block: true}
+		l := listSource{Path: c.Val(), IsBlock: true}
 		f.sources = append(f.sources, l)
 
 	case "uncloak":

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"io"
-	"os"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -28,7 +27,7 @@ func NewPatternMatcher() *PatternMatcher {
 	}
 }
 
-func (f *PatternMatcher) Add(pattern string) error {
+func (pm *PatternMatcher) Add(pattern string) error {
 	pattern = strings.TrimSpace(pattern)
 
 	if pattern == "" || strings.HasPrefix(pattern, "#") {
@@ -44,7 +43,7 @@ func (f *PatternMatcher) Add(pattern string) error {
 			if err != nil {
 				return err
 			}
-			f.regexes = append(f.regexes, r)
+			pm.regexes = append(pm.regexes, r)
 			break
 		}
 	}
@@ -52,45 +51,45 @@ func (f *PatternMatcher) Add(pattern string) error {
 		if strings.HasSuffix(pattern, "*") && strings.HasPrefix(pattern, "*") { //nolint
 			qname := strings.TrimPrefix(pattern, "*")
 			qname = strings.TrimSuffix(qname, "*")
-			f.subStrings = append(f.subStrings, qname)
+			pm.subStrings = append(pm.subStrings, qname)
 		} else if strings.HasSuffix(pattern, "*") {
 			domain := strings.TrimSuffix(pattern, "*")
-			f.prefixes, _, _ = f.prefixes.Insert([]byte(domain), 1)
+			pm.prefixes, _, _ = pm.prefixes.Insert([]byte(domain), 1)
 		} else if strings.HasPrefix(pattern, "*") {
 			domain := strings.TrimPrefix(pattern, "*")
-			f.suffixes, _, _ = f.suffixes.Insert([]byte(stringReverse(domain)), 1)
+			pm.suffixes, _, _ = pm.suffixes.Insert([]byte(stringReverse(domain)), 1)
 		}
 	} else {
-		f.exactStrings[pattern] = struct{}{}
+		pm.exactStrings[pattern] = struct{}{}
 	}
 	return nil
 }
 
-func (f *PatternMatcher) Match(qname string) bool {
+func (pm *PatternMatcher) Match(qname string) bool {
 	qname = strings.TrimSuffix(qname, ".")
 
-	_, found := f.exactStrings[qname]
+	_, found := pm.exactStrings[qname]
 	if found {
 		return true
 	}
-	_, _, found = f.prefixes.Root().LongestPrefix([]byte(qname))
+	_, _, found = pm.prefixes.Root().LongestPrefix([]byte(qname))
 	if found {
 		return true
 	}
-	_, _, found = f.suffixes.Root().LongestPrefix([]byte(stringReverse(qname)))
+	_, _, found = pm.suffixes.Root().LongestPrefix([]byte(stringReverse(qname)))
 	if found {
 		return true
 	}
-	_, found = f.suffixes.Root().Get([]byte(stringReverse(qname) + "."))
+	_, found = pm.suffixes.Root().Get([]byte(stringReverse(qname) + "."))
 	if found {
 		return true
 	}
-	for _, substr := range f.subStrings {
+	for _, substr := range pm.subStrings {
 		if strings.Contains(qname, substr) {
 			return true
 		}
 	}
-	for _, regex := range f.regexes {
+	for _, regex := range pm.regexes {
 		if regex.MatchString(qname) {
 			return true
 		}
@@ -98,14 +97,14 @@ func (f *PatternMatcher) Match(qname string) bool {
 	return false
 }
 
-func (f *PatternMatcher) Load(r io.Reader) error {
+func (pm *PatternMatcher) LoadRules(r io.Reader) error {
 	if r == nil {
 		return errors.New("invalid list source")
 	}
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
-		err := f.Add(scanner.Text())
+		err := pm.Add(scanner.Text())
 		if err != nil {
 			log.Error(err)
 		}
@@ -114,19 +113,6 @@ func (f *PatternMatcher) Load(r io.Reader) error {
 		}
 	}
 	return nil
-}
-
-type source struct {
-	Path  string
-	Block bool
-}
-
-func (s *source) Read() (src io.ReadCloser, err error) {
-	f, err := os.Open(s.Path)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
 }
 
 var regexpRunes = []string{"[", "]", "(", ")", "|", "?",

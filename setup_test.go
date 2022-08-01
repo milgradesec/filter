@@ -19,7 +19,14 @@ func TestSetup(t *testing.T) {
 			allow ./testdata/allowlist.list
 			block ./testdata/denylist.list
 			ttl 300
+		}`, false},
+		{`filter {
+			allow ./testdata/allowlist.list
+			block ./testdata/denylist.list
 			uncloak
+		}`, false},
+		{`filter {
+			allow s3::https://c34eb1b082abb2c3786c4f008b295dd4.r2.cloudflarestorage.com/paesadns-lists/allow.rules
 		}`, false},
 	}
 
