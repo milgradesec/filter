@@ -1,4 +1,4 @@
-name: GolangCI-Lint
+name: Lint
 
 on:
   push:
@@ -9,7 +9,6 @@ on:
 
 jobs:
   golangci:
-    name: Lint
     runs-on: ubuntu-latest
 
     steps:
