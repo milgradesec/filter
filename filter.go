@@ -46,7 +46,7 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	if f.Match(state.Name()) {
 		BlockCount.WithLabelValues(server).Inc()
 
-		msg := createReply(r, f.ttl)
+		msg := createSyntheticResponse(r, f.ttl)
 		w.WriteMsg(msg) //nolint
 		return dns.RcodeSuccess, nil
 	}
@@ -138,7 +138,7 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 			BlockCount.WithLabelValues(w.server).Inc()
 
 			r := w.state.Req
-			msg := createReply(r, w.ttl)
+			msg := createSyntheticResponse(r, w.ttl)
 			w.WriteMsg(msg) //nolint
 			return nil
 		}

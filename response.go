@@ -7,7 +7,7 @@ import (
 	"github.com/miekg/dns"
 )
 
-func createReply(r *dns.Msg, ttl uint32) *dns.Msg {
+func createSyntheticResponse(r *dns.Msg, ttl uint32) *dns.Msg {
 	state := request.Request{Req: r}
 
 	switch state.QType() {
@@ -72,7 +72,7 @@ func newNXDomainResponse(r *dns.Msg, ttl uint32) *dns.Msg {
 		Retry:   900,
 		Expire:  604800,
 		Minttl:  86400,
-		Ns:      "fake-for-negative-caching.dns.paesa.es.",
+		Ns:      "nobody.dns.paesa.es.",
 		Serial:  100500,
 
 		Hdr: dns.RR_Header{
