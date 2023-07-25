@@ -1,13 +1,18 @@
 package filter
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
+	"io"
 	"strings"
+	"time"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/metrics"
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
+	ranger "github.com/yl2chen/cidranger"
 )
 
 const defaultResponseTTL = 3600 // Default TTL used for generated responses.
@@ -17,8 +22,21 @@ const defaultResponseTTL = 3600 // Default TTL used for generated responses.
 type Filter struct {
 	Next plugin.Handler
 
+	// lists to allow or block domains from a file
 	allowlist *PatternMatcher
 	denylist  *PatternMatcher
+
+	// lists to allow or block records
+	allowCIDR4list ranger.Ranger
+	allowCIDR6list ranger.Ranger
+	denyCIDR4list  ranger.Ranger
+	denyCIDR6list  ranger.Ranger
+
+	reload time.Duration
+	hash   []byte
+
+	// return empty answers in the requests.
+	emptyResponse bool
 
 	// sources to load data into filters.
 	sources []listSource
@@ -32,9 +50,13 @@ type Filter struct {
 
 func New() *Filter {
 	return &Filter{
-		allowlist: NewPatternMatcher(),
-		denylist:  NewPatternMatcher(),
-		ttl:       defaultResponseTTL,
+		allowlist:      NewPatternMatcher(),
+		denylist:       NewPatternMatcher(),
+		allowCIDR4list: ranger.NewPCTrieRanger(),
+		allowCIDR6list: ranger.NewPCTrieRanger(),
+		denyCIDR4list:  ranger.NewPCTrieRanger(),
+		denyCIDR6list:  ranger.NewPCTrieRanger(),
+		ttl:            defaultResponseTTL,
 	}
 }
 
@@ -46,7 +68,12 @@ func (f *Filter) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	if f.Match(state.Name()) {
 		BlockCount.WithLabelValues(server).Inc()
 
-		msg := createSyntheticResponse(r, f.ttl)
+		var msg *dns.Msg
+		if !f.emptyResponse {
+			msg = createSyntheticResponse(r, f.ttl)
+		} else {
+			msg = newEmptyResponse(r, f.ttl)
+		}
 		w.WriteMsg(msg) //nolint
 		return dns.RcodeSuccess, nil
 	}
@@ -75,7 +102,37 @@ func (f *Filter) Match(name string) bool {
 	return false
 }
 
+// Does a hash on the list files to determine if anything has changed
+func (f *Filter) checkHash() (ck bool) {
+	h := sha256.New()
+	for _, src := range f.sources {
+		rc, err := src.Open()
+		if err != nil {
+			log.Error(err)
+			return false
+		}
+		defer rc.Close()
+		_, err = io.Copy(h, rc)
+		if err != nil {
+			log.Error(err)
+			return false
+		}
+		rc.Close()
+	}
+	s := h.Sum(nil)
+	ck = bytes.Compare(s, f.hash) != 0
+	f.hash = s
+	return
+}
+
+// Load in the files and set the denylist and allowlist if no errors are encountered
 func (f *Filter) Load() error {
+	denylist := NewPatternMatcher()
+	allowlist := NewPatternMatcher()
+	allowCIDR4list := ranger.NewPCTrieRanger()
+	allowCIDR6list := ranger.NewPCTrieRanger()
+	denyCIDR4list := ranger.NewPCTrieRanger()
+	denyCIDR6list := ranger.NewPCTrieRanger()
 	for _, src := range f.sources {
 		rc, err := src.Open()
 		if err != nil {
@@ -83,16 +140,36 @@ func (f *Filter) Load() error {
 		}
 		defer rc.Close()
 
-		if src.IsBlock {
-			if err := f.denylist.LoadRules(rc); err != nil {
-				return err
+		if !src.IsCIDR {
+			if src.IsBlock {
+				if err := denylist.LoadRules(rc); err != nil {
+					return err
+				}
+			} else {
+				if err := allowlist.LoadRules(rc); err != nil {
+					return err
+				}
 			}
 		} else {
-			if err := f.allowlist.LoadRules(rc); err != nil {
-				return err
+			if src.IsBlock {
+				if err := LoadCIDR(rc, denyCIDR4list, denyCIDR6list); err != nil {
+					return err
+				}
+			} else {
+				if err := LoadCIDR(rc, allowCIDR4list, allowCIDR6list); err != nil {
+					return err
+				}
 			}
 		}
+		rc.Close()
 	}
+	f.denylist = denylist
+	f.allowlist = allowlist
+	f.allowCIDR4list = allowCIDR4list
+	f.allowCIDR6list = allowCIDR6list
+	f.denyCIDR4list = denyCIDR4list
+	f.denyCIDR6list = denyCIDR6list
+
 	return nil
 }
 
@@ -115,9 +192,11 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 		return w.ResponseWriter.WriteMsg(m)
 	}
 
+	var answers []dns.RR
 	for _, r := range m.Answer {
 		header := r.Header()
 		if header.Class != dns.ClassINET {
+			answers = append(answers, r)
 			continue
 		}
 
@@ -129,7 +208,24 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 			target = r.(*dns.SVCB).Target //nolint
 		case dns.TypeHTTPS:
 			target = r.(*dns.HTTPS).Target //nolint
+		case dns.TypeA:
+			ip := r.(*dns.A).A //nolint
+			if c, err := w.denyCIDR4list.Contains(ip); !c && err == nil {
+				answers = append(answers, r)
+			} else if c, err := w.allowCIDR4list.Contains(ip); !c && err == nil {
+				answers = append(answers, r)
+			}
+			continue
+		case dns.TypeAAAA:
+			ip := r.(*dns.AAAA).AAAA //nolint
+			if c, err := w.denyCIDR6list.Contains(ip); !c && err == nil {
+				answers = append(answers, r)
+			} else if c, err := w.allowCIDR6list.Contains(ip); !c && err == nil {
+				answers = append(answers, r)
+			}
+			continue
 		default:
+			answers = append(answers, r)
 			continue
 		}
 
@@ -138,10 +234,23 @@ func (w *ResponseWriter) WriteMsg(m *dns.Msg) error {
 			BlockCount.WithLabelValues(w.server).Inc()
 
 			r := w.state.Req
-			msg := createSyntheticResponse(r, w.ttl)
+			var msg *dns.Msg
+			if !w.emptyResponse {
+				msg = createSyntheticResponse(r, w.ttl)
+			} else {
+				msg = newEmptyResponse(r, w.ttl)
+			}
 			w.WriteMsg(msg) //nolint
 			return nil
 		}
+		answers = append(answers, r)
 	}
+
+	// If all the answers were stripped away, return server failure.  Doing so may make the client retry and get a new set of IPs.
+	if len(m.Answer) > 0 && len(answers) == 0 {
+		m.Rcode = dns.RcodeServerFailure
+	}
+
+	m.Answer = answers
 	return w.ResponseWriter.WriteMsg(m)
 }
