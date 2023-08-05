@@ -22,6 +22,17 @@ func createSyntheticResponse(r *dns.Msg, ttl uint32) *dns.Msg {
 	}
 }
 
+func newEmptyResponse(r *dns.Msg, ttl uint32) *dns.Msg {
+	msg := new(dns.Msg)
+	msg.SetReply(r)
+	msg.SetRcode(r, dns.RcodeSuccess)
+	msg.Answer = []dns.RR{}
+	msg.Authoritative = true
+	msg.RecursionAvailable = true
+	msg.Compress = true
+	return msg
+}
+
 func newAResponse(r *dns.Msg, ttl uint32) *dns.Msg {
 	a := new(dns.A)
 	a.Hdr = dns.RR_Header{

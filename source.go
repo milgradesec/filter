@@ -15,6 +15,7 @@ import (
 type listSource struct {
 	Path    string
 	IsBlock bool
+	IsCIDR  bool
 }
 
 func (s *listSource) Open() (src io.ReadCloser, err error) {

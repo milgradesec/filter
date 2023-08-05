@@ -16,6 +16,13 @@ The _filter_ plugins enables blocking requests based on predefined lists and rul
 - Regex and simple string matching support.
 - Inspection of CNAME, SVCB and HTTPS records detects and blocks cloaking.
 - Block replies are fully cacheable by the _cache_ plugin.
+- Load allow/block/allow-ips/block-ips from file or S3 bucket
+- The allow-ips will only allow networks if a block is made with a smaller network prefix, like 0.0.0.0/0 or ::/0 as the default is allow.
+
+## Environment
+
+To use S3 buckets, the environment variables must be set: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_REGION`.  Once set the bucket path must start with `s3::`.
+
 
 ## Syntax
 
@@ -23,13 +30,21 @@ The _filter_ plugins enables blocking requests based on predefined lists and rul
 filter {
     allow FILE
     block FILE
+    allow-ips FILE
+    block-ips FILE
     uncloak
+    empty
     ttl DURATION
+    reload DURATION
 }
 ```
 
 - `allow` load **FILE** to the whitelist.
 - `block` load **FILE** to the blacklist.
+- `allow-ips` load **FILE** to the IP response whitelist.
+- `block-ips` load **FILE** to the IP response blacklist.
+- `empty` return an empty answer record for every blocked request instead of an all zero record.
+- `reload` **DURATION** read in the allow/block lists periodically, (example: reload 15s).
 - `uncloak` enables response uncloaking, disabled by default.
 - `ttl` sets **TTL** for blocked responses, default is 3600s.
 
@@ -46,6 +61,7 @@ If monitoring is enabled (via the _prometheus_ plugin) then the following metric
     filter {
         allow /lists/allowlist.txt
         block /lists/denylist.txt
+        block-ips /lists/bad-ips.txt
         uncloak
         ttl 600
     }
