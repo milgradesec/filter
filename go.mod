@@ -7,7 +7,7 @@ require (
 	github.com/coredns/coredns v1.11.1
 	github.com/hashicorp/go-getter v1.7.2
 	github.com/hashicorp/go-immutable-radix v1.3.1
-	github.com/miekg/dns v1.1.55
+	github.com/miekg/dns v1.1.56
 	github.com/prometheus/client_golang v1.16.0
 )
 
@@ -55,15 +55,15 @@ require (
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/exp v0.0.0-20221205204356-47842c84f3db // indirect
-	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/mod v0.12.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/oauth2 v0.11.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
-	golang.org/x/tools v0.9.3 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/tools v0.13.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.136.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
