@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/go-getter v1.7.4
 	github.com/hashicorp/go-immutable-radix v1.3.1
 	github.com/miekg/dns v1.1.58
-	github.com/prometheus/client_golang v1.19.0
+	github.com/prometheus/client_golang v1.19.1
 )
 
 require (
