@@ -8,7 +8,7 @@ require (
 	github.com/coredns/coredns v1.12.1
 	github.com/hashicorp/go-getter v1.7.8
 	github.com/hashicorp/go-immutable-radix v1.3.1
-	github.com/miekg/dns v1.1.64
+	github.com/miekg/dns v1.1.65
 	github.com/prometheus/client_golang v1.21.1
 )
 
