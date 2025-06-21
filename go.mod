@@ -1,8 +1,6 @@
 module github.com/milgradesec/filter
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.24.4
 
 require (
 	github.com/coredns/caddy v1.1.2-0.20241029205200-8de985351a98
