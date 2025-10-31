@@ -5,7 +5,7 @@ go 1.24.4
 require (
 	github.com/coredns/caddy v1.1.4-0.20250930002214-15135a999495
 	github.com/coredns/coredns v1.13.1
-	github.com/hashicorp/go-getter v1.8.2
+	github.com/hashicorp/go-getter v1.8.3
 	github.com/hashicorp/go-immutable-radix v1.3.1
 	github.com/miekg/dns v1.1.68
 	github.com/prometheus/client_golang v1.23.2
