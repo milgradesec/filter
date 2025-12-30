@@ -3,7 +3,7 @@ module github.com/milgradesec/filter
 go 1.24.4
 
 require (
-	github.com/coredns/caddy v1.1.4-0.20250930002214-15135a999495
+	github.com/coredns/caddy v1.1.4
 	github.com/coredns/coredns v1.13.2
 	github.com/hashicorp/go-getter v1.8.3
 	github.com/hashicorp/go-immutable-radix v1.3.1
