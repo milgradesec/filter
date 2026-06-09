@@ -108,11 +108,8 @@ func (pm *PatternMatcher) LoadRules(r io.Reader) error {
 		if err != nil {
 			log.Error(err)
 		}
-		if scanner.Err() != nil {
-			return scanner.Err()
-		}
 	}
-	return nil
+	return scanner.Err()
 }
 
 var regexpRunes = []string{"[", "]", "(", ")", "|", "?",
