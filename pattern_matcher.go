@@ -49,14 +49,11 @@ func (pm *PatternMatcher) Add(pattern string) error {
 	}
 	if strings.Contains(pattern, "*") {
 		if strings.HasSuffix(pattern, "*") && strings.HasPrefix(pattern, "*") { //nolint
-			qname := strings.TrimPrefix(pattern, "*")
-			qname = strings.TrimSuffix(qname, "*")
+			qname := strings.TrimSuffix(strings.TrimPrefix(pattern, "*"), "*")
 			pm.subStrings = append(pm.subStrings, qname)
-		} else if strings.HasSuffix(pattern, "*") {
-			domain := strings.TrimSuffix(pattern, "*")
+		} else if domain, ok := strings.CutSuffix(pattern, "*"); ok {
 			pm.prefixes, _, _ = pm.prefixes.Insert([]byte(domain), 1)
-		} else if strings.HasPrefix(pattern, "*") {
-			domain := strings.TrimPrefix(pattern, "*")
+		} else if domain, ok := strings.CutPrefix(pattern, "*"); ok {
 			pm.suffixes, _, _ = pm.suffixes.Insert([]byte(stringReverse(domain)), 1)
 		}
 	} else {
