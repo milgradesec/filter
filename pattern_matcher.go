@@ -43,7 +43,7 @@ func (pm *PatternMatcher) Add(pattern string) error {
 				return err
 			}
 			pm.regexes = append(pm.regexes, r)
-			break
+			return nil
 		}
 	}
 	if strings.Contains(pattern, "*") {

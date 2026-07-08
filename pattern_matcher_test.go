@@ -63,6 +63,29 @@ func TestAddNonUTF8Pattern(t *testing.T) {
 	}
 }
 
+func TestAddRegexNotDoubleRegistered(t *testing.T) {
+	tests := []string{
+		`example\.com$`, // regex without '*'
+		`^tracker.*`,    // regex ending in '*'
+	}
+	for _, pattern := range tests {
+		pm := NewPatternMatcher()
+		if err := pm.Add(pattern); err != nil {
+			t.Fatalf("Add(%q): %v", pattern, err)
+		}
+		if len(pm.regexes) != 1 {
+			t.Errorf("Add(%q): expected 1 regex, got %d", pattern, len(pm.regexes))
+		}
+		if len(pm.exactStrings) != 0 || pm.prefixes.Len() != 0 ||
+			pm.suffixes.Len() != 0 || len(pm.subStrings) != 0 {
+			t.Errorf("Add(%q): regex leaked into non-regex structures "+
+				"(exact=%d prefixes=%d suffixes=%d substrings=%d)",
+				pattern, len(pm.exactStrings), pm.prefixes.Len(),
+				pm.suffixes.Len(), len(pm.subStrings))
+		}
+	}
+}
+
 func TestLoadRulesReturnsScannerError(t *testing.T) {
 	pm := NewPatternMatcher()
 	line := strings.Repeat("a", bufio.MaxScanTokenSize+1)
