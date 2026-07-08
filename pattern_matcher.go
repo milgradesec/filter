@@ -64,21 +64,20 @@ func (pm *PatternMatcher) Add(pattern string) error {
 func (pm *PatternMatcher) Match(qname string) bool {
 	qname = strings.TrimSuffix(qname, ".")
 
-	_, found := pm.exactStrings[qname]
-	if found {
+	if _, found := pm.exactStrings[qname]; found {
 		return true
 	}
-	_, _, found = pm.prefixes.Root().LongestPrefix([]byte(qname))
-	if found {
+	if _, _, found := pm.prefixes.Root().LongestPrefix([]byte(qname)); found {
 		return true
 	}
-	_, _, found = pm.suffixes.Root().LongestPrefix([]byte(stringReverse(qname)))
-	if found {
-		return true
-	}
-	_, found = pm.suffixes.Root().Get([]byte(stringReverse(qname) + "."))
-	if found {
-		return true
+	if pm.suffixes.Len() > 0 {
+		rev := []byte(stringReverse(qname))
+		if _, _, found := pm.suffixes.Root().LongestPrefix(rev); found {
+			return true
+		}
+		if _, found := pm.suffixes.Root().Get(append(rev, '.')); found {
+			return true
+		}
 	}
 	for _, substr := range pm.subStrings {
 		if strings.Contains(qname, substr) {
