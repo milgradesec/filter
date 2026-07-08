@@ -6,7 +6,6 @@ import (
 	"io"
 	"regexp"
 	"strings"
-	"unicode/utf8"
 
 	iradix "github.com/hashicorp/go-immutable-radix"
 )
@@ -112,13 +111,13 @@ func (pm *PatternMatcher) LoadRules(r io.Reader) error {
 var regexpRunes = []string{"[", "]", "(", ")", "|", "?",
 	"+", "$", "{", "}", "^"}
 
+// stringReverse reverses s byte by byte. DNS names are byte sequences, so
+// no UTF-8 decoding is needed; rune-based reversal panics or corrupts the
+// result on non-UTF-8 input.
 func stringReverse(s string) string {
-	size := len(s)
-	buf := make([]byte, size)
-	for start := 0; start < size; {
-		r, n := utf8.DecodeRuneInString(s[start:])
-		start += n
-		utf8.EncodeRune(buf[size-start:], r)
+	b := []byte(s)
+	for i, j := 0, len(b)-1; i < j; i, j = i+1, j-1 {
+		b[i], b[j] = b[j], b[i]
 	}
-	return string(buf)
+	return string(b)
 }
